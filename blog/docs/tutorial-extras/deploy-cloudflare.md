@@ -20,7 +20,5 @@ Sau khi hoàn thành Tutorial Basics và Tutorial Extras, bạn có thể deploy
 ![Cloudflare Deploy](img/cloudflare.png)
 
 - **Auto-update**: Mỗi push GitHub = rebuild tự động.
-- **Preview PR**: Tạo branch mới > Push > Cloudflare auto tạo subdomain test (e.g., branch-name--jaxvn-blog.pages.dev).
-
 
 Quay lại [Intro](/docs/intro) nếu cần!
