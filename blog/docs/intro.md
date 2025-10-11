@@ -11,12 +11,12 @@ Chuẩn Bị: Xóa Repo Cũ (Nếu Có)
 Nếu bạn có repo cũ bị lộn xộn (như fork sai hoặc nested folders), xóa để sạch sẽ:
 GitHub web > Vào repo cũ > Settings > Cuộn xuống Danger Zone > Delete this repository > Xác nhận bằng tên repo.
 
-#Bước 1: Tạo Repo Mới Trống
+# Bước 1: Tạo Repo Mới Trống
 GitHub web > Nút New (xanh lá) > Tên repo: jaxvn-blog (hoặc tên bạn thích, ví dụ: your-blog – ghi chú: chọn tên ngắn gọn, không dấu cách).
 Chọn Public > KHÔNG tick README, .gitignore, license (để repo trống hoàn toàn).
 Nhấn Create repository.
 
-#Bước 2: Mở Codespace (Môi Trường Dev Web)
+# Bước 2: Mở Codespace (Môi Trường Dev Web)
 Vào repo mới > Nút Code (xanh) > Tab Codespaces > Create codespace on main.
 Chờ load 1-2 phút (tự cài Node/Yarn). Terminal mở (Ctrl+), prompt: @user ➜ /workspaces/jaxvn-blog (main) $(ghi chú: path này dựa trên tên repo của bạn; nếu thay tên repo, path sẽ là/workspaces/your-blog`).
 
