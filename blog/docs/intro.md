@@ -1,16 +1,21 @@
 ---
 id: intro
-title: Chào Mừng Đến Blog Của Bạn!
-description: Trang hướng dẫn đầu tiên cho người mới GitHub.
+title: Tutorial Intro!
+description: Giới thiệu Hướng dẫn.
 ---
+## Getting Started
 
-# Hướng Dẫn Tạo Trang Blog Đầu Tiên Với Docusaurus Trên GitHub Codespace (Dành Cho Người Mới)
+**Hãy khám phá Docusaurus** với **[docusaurus.io](https://docusaurus.io)**.
+**Thử Docusaurus ngay lập tức** với **[docusaurus.new](https://docusaurus.new)**.
+
+Hãy khám phá **Docusaurus chỉ trong chưa đầy 5 phút**.
+Có lẽ họ quên nói một vài thứ chẳng hạn như cần một số kiến thức cơ bản về lập trình chẳng hạn???
+Hoặc... bạn có thể mất hơn 5 ngày để mò mẫm từng chút một như mình ngày xưa! 😅
+Và giờ đây, mình viết lại bài hướng dẫn này dựa trên kinh nghiệm thực tế, hy vọng sẽ giúp được cho những ai đi sau – từ setup Codespace đến deploy Cloudflare, đơn giản và tránh lỗi phổ biến. Theo dõi nhé!
+
+## Giới thiệu Hướng dẫn.
 
 Chào bạn mới! Nếu bạn đang làm quen với GitHub như mình, đây là hướng dẫn **step-by-step đơn giản** để tạo repo, setup Codespace, và chạy trang blog preview chỉ trong 10-15 phút. Mình sẽ dùng Docusaurus (framework dễ dùng cho docs/blog static site). Toàn bộ làm trên web, không cần cài gì local. (Dựa trên kinh nghiệm thực tế từ setup của mình – repo `jaxvn-blog` bạn có thể thay tên repo bằng tên của bạn nếu muốn, ví dụ: `your-blog`, nhưng giữ nguyên để theo hướng dẫn dễ dàng).
-
-## Chuẩn Bị: Xóa Repo Cũ (Nếu Có)
-Nếu bạn có repo cũ bị lộn xộn (như fork sai hoặc nested folders), xóa để sạch sẽ:
-1. GitHub web > Vào repo cũ > **Settings** > Cuộn xuống **Danger Zone** > **Delete this repository** > Xác nhận bằng tên repo.
 
 ## Bước 1: Tạo Repo Mới Trống
 1. GitHub web > Nút **New** (xanh lá) > Tên repo: `jaxvn-blog` (hoặc tên bạn thích, ví dụ: `your-blog` – ghi chú: chọn tên ngắn gọn, không dấu cách).
@@ -80,5 +85,19 @@ git push origin main
 ```
 - Thấy: "40 files changed..." (nếu bootstrap lần đầu) – repo web sync ngay (refresh GitHub để xem).
 
-Xong! Bạn đã có blog live trên Codespace. Giờ edit `docs/intro.md` theo hướng dẫn này, push lên – ai mới cũng làm được. Nếu kẹt lệnh nào, paste log terminal nhé! ^^ (Repo mẫu của mình: https://github.com/JaxVN/jaxvn-blog).
-**Lưu ý**: Save file là preview tự refresh sau 2 giây!
+Xong! Bạn đã có blog live trên Codespace. Giờ edit `docs/intro.md` theo hướng dẫn này, push lên – ai mới cũng làm được! ^^ 
+**Lưu ý**:
+- Save file là preview tự refresh sau 2 giây!
+- Mình dùng Chrome, chọn cho phép luôn mở cửa sổ mới với trang Codespace thì sau này mỗi lần chạy `yarn start` là nó tự động mở trình duyệt mới luôn à!
+```
+@JaxVN ➜ /workspaces/jaxvn-blog/blog (main) $ yarn start
+yarn run v1.22.22
+$ docusaurus start
+[INFO] Starting the development server...
+[SUCCESS] Docusaurus website is running at: http://localhost:3000/
+
+✔ Client
+  Compiled successfully in 1.81s
+
+client (webpack 5.102.1) compiled successfully
+```
