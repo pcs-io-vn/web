@@ -22,3 +22,4 @@ Chờ load 1-2 phút (tự cài Node/Yarn). Terminal mở (Ctrl+), prompt: @user
 
 
 > **Lưu ý**: Save file là preview tự refresh sau 2 giây!
+> Của mình thì ở đây: "https://bookish-space-waffle-jjvvrxvw5qxfpjqr-3000.app.github.dev/docs/intro"
