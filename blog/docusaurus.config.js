@@ -1,4 +1,4 @@
-/** @type {import('@docusaurus/types').Config} */
+ /** @type {import('@docusaurus/types').Config} */
 const config = {
   title: 'JaxVN Blog',
   tagline: 'Tài liệu cá nhân',
@@ -16,7 +16,12 @@ const config = {
   projectName: 'jaxvn-blog', // Usually your repo name.
 
   onBrokenLinks: 'throw',
-  onBrokenMarkdownLinks: 'warn',
+  // Di chuyển onBrokenMarkdownLinks vào markdown.hooks để fix warning
+  markdown: {
+    hooks: {
+      onBrokenMarkdownLinks: 'warn',
+    },
+  },
 
   // Even if you don't use internalization, you can use this field to set
   // useful metadata like html lang. For example, if your site is Chinese, you
