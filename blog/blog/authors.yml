@@ -23,3 +23,18 @@ slorber:
     linkedin: sebastienlorber
     github: slorber
     newsletter: https://thisweekinreact.com
+
+jaxvn:
+  name: Hong Bao Ngan
+  title: Cha đẻ của bug 404
+  url: https://www.linkedin.com/in/hongbaongan
+  image_url: https://avatars.githubusercontent.com/u/19403704?v=4
+  page:
+    # customize the url of the author page at /blog/authors/<permalink>
+    permalink: '/authors/jaxvn'
+  socials:
+    x: hongbaongan
+    linkedin: hongbaongan
+    github: JaxVN
+    newsletter: https://thisweekinreact.com
+
