@@ -1,42 +1,35 @@
- /** @type {import('@docusaurus/types').Config} */
+// @ts-check
+import { themes as prismThemes } from 'prism-react-renderer';
+
+/** @type {import('@docusaurus/types').Config} */
 const config = {
-  title: 'JaxVN Blog',
-  tagline: 'Tài liệu cá nhân',
+  title: 'PCS Vietnam',
+  tagline: 'Hỗ trợ kỹ thuật từ xa | Remote IT Support',
   favicon: 'img/favicon.ico',
 
-  // Set the production url of your site here
-  url: 'https://jaxvn-blog.pages.dev',
-  // Set the /<baseUrl>/ pathname under which your site is served
-  // For GitHub pages deployment, it is often '/<projectName>/'
+  url: 'https://blog.pcs.io.vn',
   baseUrl: '/',
 
-  // GitHub pages deployment config.
-  // If you aren't using GitHub pages, you don't need these.
-  organizationName: 'JaxVN', // Usually your GitHub org/user name.
-  projectName: 'jaxvn-blog', // Usually your repo name.
+  organizationName: 'JaxVN',   // GitHub username
+  projectName: 'jaxvn-blog',   // GitHub repo name
 
-  onBrokenLinks: 'throw',
-  // Di chuyển onBrokenMarkdownLinks vào markdown.hooks để fix warning
-  markdown: {
-    hooks: {
-      onBrokenMarkdownLinks: 'warn',
-    },
-  },
+  onBrokenLinks: 'warn',
+  onBrokenMarkdownLinks: 'warn',
 
-  // Even if you don't use internalization, you can use this field to set
-  // useful metadata like html lang. For example, if your site is Chinese, you
-  // may want to replace "en" with "zh-Hans".
+  // ─── i18n: Tiếng Việt mặc định, có thêm English ───
   i18n: {
-    defaultLocale: 'vi',  // Tiếng Việt làm ngôn ngữ chính
-    locales: ['vi', 'en'],  // Hỗ trợ vi (gốc) + en (dịch sau)
+    defaultLocale: 'vi',
+    locales: ['vi', 'en'],
     localeConfigs: {
       vi: {
-        label: 'Tiếng Việt',
-        direction: 'ltr',  // Left-to-right
+        label: '🇻🇳 Tiếng Việt',
+        direction: 'ltr',
+        htmlLang: 'vi',
       },
       en: {
-        label: 'English',
+        label: '🇬🇧 English',
         direction: 'ltr',
+        htmlLang: 'en',
       },
     },
   },
@@ -46,22 +39,13 @@ const config = {
       'classic',
       /** @type {import('@docusaurus/preset-classic').Options} */
       ({
-        docs: {
-          sidebarPath: require.resolve('./sidebars.js'),
-          // Please change this to your repo.
-          // Remove this to remove the "edit this page" links.
-          editUrl:
-            'https://github.com/JaxVN/jaxvn-blog/tree/main/blog/',
-        },
+        docs: false, // Không dùng docs, chỉ dùng pages + blog
         blog: {
           showReadingTime: true,
-          // Please change this to your repo.
-          // Remove this to remove the "edit this page" links.
-          editUrl:
-            'https://github.com/JaxVN/jaxvn-blog/edit/main/blog/',
+          routeBasePath: 'blog',
         },
         theme: {
-          customCss: require.resolve('./src/css/custom.css'),
+          customCss: './src/css/custom.css',
         },
       }),
     ],
@@ -70,86 +54,63 @@ const config = {
   themeConfig:
     /** @type {import('@docusaurus/preset-classic').ThemeConfig} */
     ({
-      // Replace with your project's social card
-      image: 'img/docusaurus-social-card.jpg',
+      image: 'img/pcs-social-card.png',
+
       navbar: {
-        title: 'JaxVN Blog',
+        title: 'PCS Vietnam',
         logo: {
-          alt: 'My Site Logo',
+          alt: 'PCS Logo',
           src: 'img/logo.svg',
         },
         items: [
+          { to: '/products', label: 'Sản phẩm', position: 'left' },
+          { to: '/services', label: 'Dịch vụ', position: 'left' },
+          { to: '/blog', label: 'Blog', position: 'left' },
+          { to: '/contact', label: 'Liên hệ', position: 'left' },
+          { to: '/tos', label: 'Điều khoản', position: 'left' },
           {
-            type: 'docSidebar',
-            sidebarId: 'tutorialSidebar',
-            position: 'left',
-            label: 'Hướng dẫn',
-          },
-          {
-            to: '/blog',
-            label: 'Blog',
-            position: 'left'
-          },
-          {
-            href: 'https://github.com/JaxVN/jaxvn-blog',
-            label: 'GitHub',
+            type: 'localeDropdown', // Nút chuyển ngôn ngữ VI/EN
             position: 'right',
           },
-          {type: 'localeDropdown', position: 'right'},  // Dropdown ngôn ngữ ở phải navbar
         ],
       },
+
       footer: {
         style: 'dark',
         links: [
           {
-            title: 'Docs',
+            title: 'Dịch vụ | Services',
             items: [
-              {
-                label: 'Hướng dẫn',
-                to: '/docs/intro',
-              },
+              { label: 'Hỗ trợ từ xa | Remote Support', to: '/services/remote-it-support' },
+              { label: 'Sửa phần cứng | Hardware Repair', to: '/services/hardware-repair' },
+              { label: 'Cho doanh nghiệp | For Business', to: '/services/for-business' },
             ],
           },
           {
-            title: 'Community',
+            title: 'Thông tin | Info',
             items: [
-              {
-                label: 'Stack Overflow',
-                href: 'https://stackoverflow.com/questions/tagged/docusaurus',
-              },
-              {
-                label: 'Discord',
-                href: 'https://discordapp.com/invite/docusaurus',
-              },
-              {
-                label: 'Twitter',
-                href: 'https://twitter.com/docusaurus',
-              },
+              { label: 'Sản phẩm | Products', to: '/products' },
+              { label: 'Điều khoản | Terms of Service', to: '/tos' },
+              { label: 'Thanh toán | Payments', to: '/payments' },
             ],
           },
           {
-            title: 'More',
+            title: 'Liên hệ | Contact',
             items: [
-              {
-                label: 'Blog',
-                to: '/blog',
-              },
-              {
-                label: 'GitHub',
-                href: 'https://github.com/facebook/docusaurus',
-              },
+              { label: 'Email: info@pcs.io.vn', href: 'mailto:info@pcs.io.vn' },
+              { label: 'Zalo: 0977733339', href: 'https://zalo.me/0977733339' },
+              { label: 'Blog', to: '/blog' },
             ],
           },
         ],
-        copyright: `Copyright © ${new Date().getFullYear()} My Project, Inc. Built with Docusaurus.`,
+        copyright: `© ${new Date().getFullYear()} PCS Vietnam. All rights reserved.`,
       },
-      // Bỏ prism block để tránh lỗi module – code block vẫn highlight cơ bản với theme default
-    }),
 
-  // Thêm future flags nếu cần (giữ nguyên từ file hiện tại)
-  future: {
-    v4: true,
-  },
+      prism: {
+        theme: prismThemes.github,
+        darkTheme: prismThemes.dracula,
+      },
+    }),
 };
 
-module.exports = config;
+export default config;
