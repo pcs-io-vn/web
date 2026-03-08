@@ -64,12 +64,24 @@ const config = {
         },
         items: [
           { to: '/products', label: 'Sản phẩm', position: 'left' },
-          { to: '/services', label: 'Dịch vụ', position: 'left' },
-          { to: '/blog', label: 'Blog', position: 'left' },
-          { to: '/contact', label: 'Liên hệ', position: 'left' },
-          { to: '/tos', label: 'Điều khoản', position: 'left' },
           {
-            type: 'localeDropdown', // Nút chuyển ngôn ngữ VI/EN
+            type: 'dropdown',
+            label: 'Dịch vụ',
+            position: 'left',
+            items: [
+              { label: 'Tổng quan', to: '/services' },
+              { label: 'Hỗ trợ từ xa', to: '/services/remote-it-support' },
+              { label: 'Sửa phần cứng', to: '/services/hardware-repair' },
+              { label: 'Cho doanh nghiệp', to: '/services/for-business' },
+            ],
+          },
+          { to: '/guides', label: 'Hướng dẫn', position: 'left' },
+          { to: '/resources', label: 'Tài nguyên', position: 'left' },
+          { to: '/payments', label: 'Thanh toán', position: 'left' },
+          { to: '/contact', label: 'Liên hệ', position: 'left' },
+          { to: '/tos', label: 'Điều khoản', position: 'right' },
+          {
+            type: 'localeDropdown',
             position: 'right',
           },
         ],
