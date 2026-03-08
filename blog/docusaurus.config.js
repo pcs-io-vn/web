@@ -18,7 +18,6 @@ const config = {
   onBrokenLinks: 'warn',
   onBrokenMarkdownLinks: 'warn',
 
-<<<<<<< HEAD
   // GTM — inject vào <head>
   headTags: [
     {
@@ -32,8 +31,6 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
     },
   ],
 
-=======
->>>>>>> 6c2168d6f083d8366a2cb62819b71c675917d616
   i18n: {
     defaultLocale: 'vi',
     locales: ['vi', 'en'],
