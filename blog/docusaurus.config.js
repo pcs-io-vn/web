@@ -9,7 +9,7 @@ const config = {
   tagline: 'Personal Computing Shield',
   favicon: 'img/favicon.ico',
 
-  url: 'https://blog.pcs.io.vn',
+  url: 'https://pcs.io.vn',
   baseUrl: '/',
 
   organizationName: 'JaxVN',
@@ -18,6 +18,22 @@ const config = {
   onBrokenLinks: 'warn',
   onBrokenMarkdownLinks: 'warn',
 
+<<<<<<< HEAD
+  // GTM — inject vào <head>
+  headTags: [
+    {
+      tagName: 'script',
+      attributes: {},
+      innerHTML: `(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+})(window,document,'script','dataLayer','GTM-N6QN7WNL');`,
+    },
+  ],
+
+=======
+>>>>>>> 6c2168d6f083d8366a2cb62819b71c675917d616
   i18n: {
     defaultLocale: 'vi',
     locales: ['vi', 'en'],
