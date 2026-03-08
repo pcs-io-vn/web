@@ -1,7 +1,8 @@
-# PCS Vietnam – Project Devlog
+# PCS Vietnam – Project Context
 
 > File này dùng để đồng bộ context dự án giữa các AI agents và thiết bị.  
-> Cập nhật mỗi khi có thay đổi quan trọng.
+> Cập nhật mỗi khi có thay đổi quan trọng.  
+> 📎 Raw URL: https://raw.githubusercontent.com/JaxVN/jaxvn-blog/refs/heads/main/blog/CONTEXT.md
 
 ---
 
@@ -197,8 +198,7 @@ jaxvn-blog/
 - ✅ Navbar dropdown Services hoạt động
 - ✅ Chuyển ngôn ngữ VI/EN hoạt động
 - ✅ Footer cập nhật: bỏ Zalo, thêm WhatsApp + Linktree
-- ✅ Tạo CONTEXT.md
-- ✅ Setup Git config: user.name "JaxVN", user.email "hongbaongan@gmail.com"
+- ✅ Tạo CONTEXT.md để đồng bộ context giữa các AI agents
 
 ---
 
@@ -224,7 +224,8 @@ Khi làm việc với dự án này:
 4. **Build bằng npm**, không phải yarn
 5. **Commit nhỏ, rõ ràng** — mỗi commit một việc cụ thể
 6. **Cloudflare tự build** khi push lên branch `main` — không cần build local
+7. **Context file duy nhất**: `blog/CONTEXT.md` — không tạo file context khác
 
 ---
 
-*Cập nhật lần cuối: 2026-03-08 bởi Antigravity (Google DeepMind) + JaxVN*
+*Cập nhật lần cuối: 2026-03-08 bởi Claude (Anthropic) + Antigravity (Google DeepMind) + JaxVN*
