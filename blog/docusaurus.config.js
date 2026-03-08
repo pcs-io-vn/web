@@ -1,19 +1,17 @@
 // @ts-check
-// Note: type annotations allow type checking and IDEs autocompletion
-
-import {themes as prismThemes} from 'prism-react-renderer';
+import { themes as prismThemes } from 'prism-react-renderer';
 
 /** @type {import('@docusaurus/types').Config} */
 const config = {
   title: 'PCS Vietnam',
-  tagline: 'Personal Computing Shield',
+  tagline: 'Hỗ trợ kỹ thuật từ xa | Remote IT Support',
   favicon: 'img/favicon.ico',
 
   url: 'https://pcs.io.vn',
   baseUrl: '/',
 
-  organizationName: 'JaxVN',
-  projectName: 'jaxvn-blog',
+  organizationName: 'JaxVN',   // GitHub username
+  projectName: 'jaxvn-blog',   // GitHub repo name
 
   onBrokenLinks: 'warn',
   onBrokenMarkdownLinks: 'warn',
@@ -31,12 +29,21 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
     },
   ],
 
+  // ─── i18n: Tiếng Việt mặc định, có thêm English ───
   i18n: {
     defaultLocale: 'vi',
     locales: ['vi', 'en'],
     localeConfigs: {
-      vi: { label: 'Tiếng Việt' },
-      en: { label: 'English' },
+      vi: {
+        label: '🇻🇳 Tiếng Việt',
+        direction: 'ltr',
+        htmlLang: 'vi',
+      },
+      en: {
+        label: '🇬🇧 English',
+        direction: 'ltr',
+        htmlLang: 'en',
+      },
     },
   },
 
@@ -57,21 +64,32 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
   themeConfig:
     /** @type {import('@docusaurus/preset-classic').ThemeConfig} */
     ({
+      image: 'img/pcs-social-card.png',
+
       navbar: {
         title: 'PCS Vietnam',
         logo: {
-          alt: 'PCS Vietnam Logo',
+          alt: 'PCS Logo',
           src: 'img/logo.svg',
         },
         items: [
-          { label: 'Dịch vụ', position: 'left', type: 'dropdown', items: [
-            { label: 'Hỗ trợ từ xa', to: '/services/remote-it-support' },
-            { label: 'Sửa phần cứng', to: '/services/hardware-repair' },
-            { label: 'Cho doanh nghiệp', to: '/services/for-business' },
-          ]},
-          { label: 'Sản phẩm', to: '/products', position: 'left' },
-          { label: 'Hướng dẫn', to: '/guides', position: 'left' },
-          { label: 'Liên hệ', to: '/contact', position: 'left' },
+          { to: '/products', label: 'Sản phẩm', position: 'left' },
+          {
+            type: 'dropdown',
+            label: 'Dịch vụ',
+            position: 'left',
+            items: [
+              { label: 'Tổng quan', to: '/services' },
+              { label: 'Hỗ trợ từ xa', to: '/services/remote-it-support' },
+              { label: 'Sửa phần cứng', to: '/services/hardware-repair' },
+              { label: 'Cho doanh nghiệp', to: '/services/for-business' },
+            ],
+          },
+          { to: '/guides', label: 'Hướng dẫn', position: 'left' },
+          { to: '/resources', label: 'Tài nguyên', position: 'left' },
+          { to: '/payments', label: 'Thanh toán', position: 'left' },
+          { to: '/contact', label: 'Liên hệ', position: 'left' },
+          { to: '/tos', label: 'Điều khoản', position: 'right' },
           {
             type: 'localeDropdown',
             position: 'right',
