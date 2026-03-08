@@ -198,6 +198,7 @@ jaxvn-blog/
 - ✅ Chuyển ngôn ngữ VI/EN hoạt động
 - ✅ Footer cập nhật: bỏ Zalo, thêm WhatsApp + Linktree
 - ✅ Tạo CONTEXT.md
+- ✅ Setup Git config: user.name "JaxVN", user.email "hongbaongan@gmail.com"
 
 ---
 
@@ -226,4 +227,4 @@ Khi làm việc với dự án này:
 
 ---
 
-*Cập nhật lần cuối: 2026-03-08 bởi Claude (Anthropic) + JaxVN*
+*Cập nhật lần cuối: 2026-03-08 bởi Antigravity (Google DeepMind) + JaxVN*
