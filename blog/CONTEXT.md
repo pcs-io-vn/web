@@ -12,8 +12,8 @@
 |---|---|
 | **Tên** | PCS Vietnam (Personal Computing Shield) |
 | **Chủ sở hữu** | JaxVN – cá nhân độc lập |
-| **Website chính (cũ)** | https://www.pcs.io.vn (Google Sites) |
-| **Website mới** | https://blog.pcs.io.vn (Docusaurus + Cloudflare Pages) |
+| **Website** | https://pcs.io.vn (Docusaurus + Cloudflare Pages) |
+| **Website cũ** | https://www.pcs.io.vn (Google Sites – không còn dùng) |
 | **Repo** | https://github.com/JaxVN/jaxvn-blog |
 | **Email** | info@pcs.io.vn |
 | **WhatsApp** | https://wa.me/84977733339 |
@@ -34,15 +34,17 @@
 | **Build command** | `npm install && npm run build` |
 | **Root directory** | `blog` |
 | **Build output** | `build` |
-| **DNS** | Cloudflare – CNAME `blog` → `jaxvn-blog.pages.dev` |
+| **DNS** | Cloudflare – CNAME `pcs.io.vn` + `www.pcs.io.vn` → `jaxvn-blog.pages.dev` |
 | **Package manager** | npm (không dùng yarn) |
+| **GTM** | GTM-N6QN7WNL |
+| **GA4** | G-7D44KTRL06 (property `pcs.io.vn`, account Personal 206542184) |
 
 ---
 
 ## 🗺️ Sitemap
 
 ```
-blog.pcs.io.vn/
+pcs.io.vn/
 ├── /                           Trang chủ
 ├── /products                   Các gói đăng ký
 ├── /services                   Tổng quan dịch vụ
@@ -53,7 +55,8 @@ blog.pcs.io.vn/
 ├── /resources                  Download agent Windows/macOS
 ├── /contact                    Liên hệ
 ├── /payments                   Thanh toán
-└── /tos                        Điều khoản dịch vụ
+├── /tos                        Điều khoản dịch vụ
+└── /privacy                    Chính sách bảo mật
 
 Bản EN tương ứng tại /en/[trang]
 ```
@@ -74,6 +77,7 @@ jaxvn-blog/
     │       ├── contact.md
     │       ├── payments.md
     │       ├── tos.md
+    │       ├── privacy.md
     │       └── services/
     │           ├── index.md
     │           ├── remote-it-support.md
@@ -89,6 +93,7 @@ jaxvn-blog/
     │       │   ├── contact.md
     │       │   ├── payments.md
     │       │   ├── tos.md
+    │       │   ├── privacy.md
     │       │   └── services/
     │       │       ├── index.md
     │       │       ├── remote-it-support.md
@@ -146,7 +151,8 @@ jaxvn-blog/
 - Hoàn tiền 100% trong 7 ngày nếu chưa dùng
 - Sau 7 ngày: không hoàn, trừ lỗi từ PCS
 - Thông báo thay đổi điều khoản trước 14 ngày
-- Link ToS đầy đủ: `https://blog.pcs.io.vn/tos`
+- ToS: `https://pcs.io.vn/tos`
+- Privacy Policy: `https://pcs.io.vn/privacy`
 
 ---
 
@@ -192,13 +198,21 @@ jaxvn-blog/
 - ✅ Xác nhận cá nhân độc lập hợp lệ bán subscription trên PayPal
 - ✅ Migrate website từ Google Sites sang Docusaurus
 - ✅ Setup i18n VI/EN với locale dropdown
-- ✅ Soạn toàn bộ nội dung 11 trang (VI + EN)
+- ✅ Soạn toàn bộ nội dung 12 trang (VI + EN), bao gồm `/privacy`
 - ✅ Fix build errors: package.json, yarn.lock → npm
 - ✅ Deploy thành công lên Cloudflare Pages
 - ✅ Navbar dropdown Services hoạt động
 - ✅ Chuyển ngôn ngữ VI/EN hoạt động
-- ✅ Footer cập nhật: bỏ Zalo, thêm WhatsApp + Linktree
-- ✅ Tạo CONTEXT.md để đồng bộ context giữa các AI agents
+- ✅ Footer cập nhật: bỏ Zalo, thêm WhatsApp + Linktree + Privacy Policy
+- ✅ Tách Privacy Policy thành trang `/privacy` riêng (VI + EN)
+- ✅ ToS Điều 8 link sang `/privacy` thay vì inline
+- ✅ Chuyển domain chính từ `blog.pcs.io.vn` → `pcs.io.vn`
+- ✅ DNS Cloudflare: CNAME `pcs.io.vn` + `www.pcs.io.vn` → `jaxvn-blog.pages.dev`
+- ✅ GTM-N6QN7WNL gắn vào website qua `headTags` trong docusaurus.config.js
+- ✅ Consent Mode v2 setup trong GTM (Custom HTML, Consent Initialization trigger)
+- ✅ GA4 tag (G-7D44KTRL06) setup trong GTM (Google Tag, All Pages trigger)
+- ✅ Xóa consentmanager.net cookie banner
+- ✅ Xác nhận GTM firing chuẩn qua Tag Assistant
 
 ---
 
@@ -207,10 +221,11 @@ jaxvn-blog/
 | Việc | Độ ưu tiên |
 |---|---|
 | Setup PayPal subscription button/link | 🔴 Cao |
+| Xóa GA4 property dư `G-50TDPNE8LB` và `blogpcs` (511792587) | 🟡 Trung bình |
 | Thêm favicon + logo PCS (thay logo Docusaurus mặc định) | 🟡 Trung bình |
+| Thêm property `pcs.io.vn` vào Google Search Console + Change of Address | 🟡 Trung bình |
 | Dọn dẹp thư mục `i18n/vi/` cũ không cần thiết | 🟢 Thấp |
 | Trang For Business (nội dung coming soon → hoàn thiện) | 🟢 Thấp |
-| Xem xét chuyển `pcs.io.vn` chính về Docusaurus | 🟢 Thấp |
 
 ---
 
@@ -225,7 +240,8 @@ Khi làm việc với dự án này:
 5. **Commit nhỏ, rõ ràng** — mỗi commit một việc cụ thể
 6. **Cloudflare tự build** khi push lên branch `main` — không cần build local
 7. **Context file duy nhất**: `blog/CONTEXT.md` — không tạo file context khác
+8. **Domain chính là `pcs.io.vn`** — không dùng `blog.pcs.io.vn` nữa
 
 ---
 
-*Cập nhật lần cuối: 2026-03-08 bởi Claude (Anthropic) + Antigravity (Google DeepMind) + JaxVN*
+*Cập nhật lần cuối: 2026-03-08 bởi Claude (Anthropic) + JaxVN*
