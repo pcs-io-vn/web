@@ -31,6 +31,10 @@
     "message": "Terms of Service",
     "description": "Footer link: Terms of Service"
   },
+  "link.item.label.Chính sách bảo mật": {
+    "message": "Privacy Policy",
+    "description": "Footer link: Privacy Policy"
+  },
   "link.item.label.Thanh toán": {
     "message": "Payments",
     "description": "Footer link: Payments"

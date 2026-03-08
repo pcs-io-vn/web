@@ -68,9 +68,7 @@ Chi tiết tính năng từng gói xem tại: [pcs.io.vn/products](/products)
 
 ## 8. Chính sách bảo mật
 
-- Chỉ thu thập thông tin cần thiết: tên, email, số điện thoại, thông tin thiết bị.
-- Thông tin **không được chia sẻ với bên thứ ba** vì mục đích thương mại.
-- Khách hàng có thể yêu cầu xóa dữ liệu qua [info@pcs.io.vn](mailto:info@pcs.io.vn)
+Xem đầy đủ tại: [Chính Sách Bảo Mật](/privacy)
 
 ---
 

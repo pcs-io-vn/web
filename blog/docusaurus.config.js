@@ -1,36 +1,29 @@
 // @ts-check
-import { themes as prismThemes } from 'prism-react-renderer';
+// Note: type annotations allow type checking and IDEs autocompletion
+
+import {themes as prismThemes} from 'prism-react-renderer';
 
 /** @type {import('@docusaurus/types').Config} */
 const config = {
   title: 'PCS Vietnam',
-  tagline: 'Hỗ trợ kỹ thuật từ xa | Remote IT Support',
+  tagline: 'Personal Computing Shield',
   favicon: 'img/favicon.ico',
 
   url: 'https://blog.pcs.io.vn',
   baseUrl: '/',
 
-  organizationName: 'JaxVN',   // GitHub username
-  projectName: 'jaxvn-blog',   // GitHub repo name
+  organizationName: 'JaxVN',
+  projectName: 'jaxvn-blog',
 
   onBrokenLinks: 'warn',
   onBrokenMarkdownLinks: 'warn',
 
-  // ─── i18n: Tiếng Việt mặc định, có thêm English ───
   i18n: {
     defaultLocale: 'vi',
     locales: ['vi', 'en'],
     localeConfigs: {
-      vi: {
-        label: '🇻🇳 Tiếng Việt',
-        direction: 'ltr',
-        htmlLang: 'vi',
-      },
-      en: {
-        label: '🇬🇧 English',
-        direction: 'ltr',
-        htmlLang: 'en',
-      },
+      vi: { label: 'Tiếng Việt' },
+      en: { label: 'English' },
     },
   },
 
@@ -39,11 +32,8 @@ const config = {
       'classic',
       /** @type {import('@docusaurus/preset-classic').Options} */
       ({
-        docs: false, // Không dùng docs, chỉ dùng pages + blog
-        blog: {
-          showReadingTime: true,
-          routeBasePath: 'blog',
-        },
+        docs: false,
+        blog: false,
         theme: {
           customCss: './src/css/custom.css',
         },
@@ -54,32 +44,21 @@ const config = {
   themeConfig:
     /** @type {import('@docusaurus/preset-classic').ThemeConfig} */
     ({
-      image: 'img/pcs-social-card.png',
-
       navbar: {
         title: 'PCS Vietnam',
         logo: {
-          alt: 'PCS Logo',
+          alt: 'PCS Vietnam Logo',
           src: 'img/logo.svg',
         },
         items: [
-          { to: '/products', label: 'Sản phẩm', position: 'left' },
-          {
-            type: 'dropdown',
-            label: 'Dịch vụ',
-            position: 'left',
-            items: [
-              { label: 'Tổng quan', to: '/services' },
-              { label: 'Hỗ trợ từ xa', to: '/services/remote-it-support' },
-              { label: 'Sửa phần cứng', to: '/services/hardware-repair' },
-              { label: 'Cho doanh nghiệp', to: '/services/for-business' },
-            ],
-          },
-          { to: '/guides', label: 'Hướng dẫn', position: 'left' },
-          { to: '/resources', label: 'Tài nguyên', position: 'left' },
-          { to: '/payments', label: 'Thanh toán', position: 'left' },
-          { to: '/contact', label: 'Liên hệ', position: 'left' },
-          { to: '/tos', label: 'Điều khoản', position: 'right' },
+          { label: 'Dịch vụ', position: 'left', type: 'dropdown', items: [
+            { label: 'Hỗ trợ từ xa', to: '/services/remote-it-support' },
+            { label: 'Sửa phần cứng', to: '/services/hardware-repair' },
+            { label: 'Cho doanh nghiệp', to: '/services/for-business' },
+          ]},
+          { label: 'Sản phẩm', to: '/products', position: 'left' },
+          { label: 'Hướng dẫn', to: '/guides', position: 'left' },
+          { label: 'Liên hệ', to: '/contact', position: 'left' },
           {
             type: 'localeDropdown',
             position: 'right',
@@ -103,6 +82,7 @@ const config = {
             items: [
               { label: 'Sản phẩm', to: '/products' },
               { label: 'Điều khoản dịch vụ', to: '/tos' },
+              { label: 'Chính sách bảo mật', to: '/privacy' },
               { label: 'Thanh toán', to: '/payments' },
               { label: 'Hướng dẫn', to: '/guides' },
               { label: 'Tài nguyên', to: '/resources' },

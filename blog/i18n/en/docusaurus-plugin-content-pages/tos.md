@@ -68,9 +68,7 @@ Full feature details at: [pcs.io.vn/products](/en/products)
 
 ## 8. Privacy Policy
 
-- Only necessary information is collected: name, email, phone number, device info.
-- Customer information is **not shared with third parties** for commercial purposes.
-- Customers may request data deletion via [info@pcs.io.vn](mailto:info@pcs.io.vn)
+See full policy at: [Privacy Policy](/en/privacy)
 
 ---
 
