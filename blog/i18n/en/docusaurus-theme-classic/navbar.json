@@ -1,22 +1,50 @@
 {
   "title": {
-    "message": "JaxVN Blog",
+    "message": "PCS Vietnam",
     "description": "The title in the navbar"
   },
-  "logo.alt": {
-    "message": "My Site Logo",
-    "description": "The alt text of navbar logo"
+  "item.label.Sản phẩm": {
+    "message": "Products",
+    "description": "Navbar link: Products"
+  },
+  "item.label.Dịch vụ": {
+    "message": "Services",
+    "description": "Navbar dropdown: Services"
+  },
+  "item.label.Tổng quan": {
+    "message": "Overview",
+    "description": "Navbar dropdown item: Services overview"
+  },
+  "item.label.Hỗ trợ từ xa": {
+    "message": "Remote IT Support",
+    "description": "Navbar dropdown item: Remote IT Support"
+  },
+  "item.label.Sửa phần cứng": {
+    "message": "Hardware Repair",
+    "description": "Navbar dropdown item: Hardware Repair"
+  },
+  "item.label.Cho doanh nghiệp": {
+    "message": "For Business",
+    "description": "Navbar dropdown item: For Business"
   },
   "item.label.Hướng dẫn": {
-    "message": "Hướng dẫn",
-    "description": "Navbar item with label Hướng dẫn"
+    "message": "Guides",
+    "description": "Navbar link: Guides"
   },
-  "item.label.Blog": {
-    "message": "Blog",
-    "description": "Navbar item with label Blog"
+  "item.label.Tài nguyên": {
+    "message": "Resources",
+    "description": "Navbar link: Resources"
   },
-  "item.label.GitHub": {
-    "message": "GitHub",
-    "description": "Navbar item with label GitHub"
+  "item.label.Thanh toán": {
+    "message": "Payments",
+    "description": "Navbar link: Payments"
+  },
+  "item.label.Liên hệ": {
+    "message": "Contact",
+    "description": "Navbar link: Contact"
+  },
+  "item.label.Điều khoản": {
+    "message": "Terms of Service",
+    "description": "Navbar link: Terms of Service"
   }
 }
