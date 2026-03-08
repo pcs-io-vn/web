@@ -98,7 +98,7 @@ jaxvn-blog/
     │           └── footer.json                   ← Label footer EN
     ├── docusaurus.config.js
     ├── package.json
-    └── DEVLOG.md               ← File này
+    └── CONTEXT.md              ← File này
 ```
 
 ---
@@ -197,7 +197,7 @@ jaxvn-blog/
 - ✅ Navbar dropdown Services hoạt động
 - ✅ Chuyển ngôn ngữ VI/EN hoạt động
 - ✅ Footer cập nhật: bỏ Zalo, thêm WhatsApp + Linktree
-- ✅ Tạo DEVLOG.md
+- ✅ Tạo CONTEXT.md
 
 ---
 
