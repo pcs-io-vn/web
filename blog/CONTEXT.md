@@ -37,7 +37,10 @@
 | **DNS** | Cloudflare – CNAME `pcs.io.vn` + `www.pcs.io.vn` → `jaxvn-blog.pages.dev` |
 | **Package manager** | npm (không dùng yarn) |
 | **GTM** | GTM-N6QN7WNL |
-| **GA4** | G-7D44KTRL06 (property `pcs.io.vn`, account Personal 206542184) |
+| **GA4 Account** | `pcsiovn` – ID 374041080 |
+| **GA4 Property** | `pcs.io.vn` (đổi tên từ `blogpcs`) – ID 511792587 |
+| **GA4 Measurement ID** | G-7D44KTRL06 |
+| **GA4 Stream** | pcs.io.vn – https://pcs.io.vn |
 
 ---
 
@@ -213,6 +216,9 @@ jaxvn-blog/
 - ✅ GA4 tag (G-7D44KTRL06) setup trong GTM (Google Tag, All Pages trigger)
 - ✅ Xóa consentmanager.net cookie banner
 - ✅ Xác nhận GTM firing chuẩn qua Tag Assistant
+- ✅ Dọn dẹp GA4: đổi tên property `blogpcs` → `pcs.io.vn`
+- ✅ Xóa GA4 property trống (512222014) trong account Personal
+- ✅ Xác nhận G-7D44KTRL06 là Measurement ID đúng, data đang chạy vào property 511792587
 
 ---
 
@@ -244,4 +250,4 @@ Khi làm việc với dự án này:
 
 ---
 
-*Cập nhật lần cuối: 2026-03-08 bởi Claude (Anthropic) + JaxVN*
+*Cập nhật lần cuối: 2026-03-09 bởi Claude (Anthropic) + JaxVN*
