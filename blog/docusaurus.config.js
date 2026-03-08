@@ -91,27 +91,30 @@ const config = {
         style: 'dark',
         links: [
           {
-            title: 'Dịch vụ | Services',
+            title: 'Dịch vụ',
             items: [
-              { label: 'Hỗ trợ từ xa | Remote Support', to: '/services/remote-it-support' },
-              { label: 'Sửa phần cứng | Hardware Repair', to: '/services/hardware-repair' },
-              { label: 'Cho doanh nghiệp | For Business', to: '/services/for-business' },
+              { label: 'Hỗ trợ từ xa', to: '/services/remote-it-support' },
+              { label: 'Sửa phần cứng', to: '/services/hardware-repair' },
+              { label: 'Cho doanh nghiệp', to: '/services/for-business' },
             ],
           },
           {
-            title: 'Thông tin | Info',
+            title: 'Thông tin',
             items: [
-              { label: 'Sản phẩm | Products', to: '/products' },
-              { label: 'Điều khoản | Terms of Service', to: '/tos' },
-              { label: 'Thanh toán | Payments', to: '/payments' },
+              { label: 'Sản phẩm', to: '/products' },
+              { label: 'Điều khoản dịch vụ', to: '/tos' },
+              { label: 'Thanh toán', to: '/payments' },
+              { label: 'Hướng dẫn', to: '/guides' },
+              { label: 'Tài nguyên', to: '/resources' },
             ],
           },
           {
-            title: 'Liên hệ | Contact',
+            title: 'Liên hệ',
             items: [
               { label: 'Email: info@pcs.io.vn', href: 'mailto:info@pcs.io.vn' },
-              { label: 'Zalo: 0977733339', href: 'https://zalo.me/0977733339' },
-              { label: 'Blog', to: '/blog' },
+              { label: 'WhatsApp: +84 977 733 339', href: 'https://wa.me/84977733339' },
+              { label: 'Tất cả kênh liên lạc', href: 'https://linktr.ee/jaxvn' },
+              { label: 'Đặt lịch hẹn', href: 'https://calendar.app.google/r8cNH7giyokjRHP26' },
             ],
           },
         ],
