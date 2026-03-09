@@ -222,16 +222,47 @@ jaxvn-blog/
 
 ---
 
+## 💳 PayPal Subscription Plans
+
+| Gói | Giá USD | Plan ID |
+|---|---|---|
+| Experience Plan | $14.99/năm | P-8NF75640KE862722RNGXIUKI |
+| Peace of Mind Plan | $39.99/năm | P-2VY35053U2778302PNGXIZTY |
+| Comprehensive Care Plan | $79.99/năm | P-71852329KJ631745YNGXI2CQ |
+
+Subscribe links:
+- Experience: `https://www.paypal.com/webapps/billing/plans/subscribe?plan_id=P-8NF75640KE862722RNGXIUKI`
+- Peace of Mind: `https://www.paypal.com/webapps/billing/plans/subscribe?plan_id=P-2VY35053U2778302PNGXIZTY`
+- Comprehensive Care: `https://www.paypal.com/webapps/billing/plans/subscribe?plan_id=P-71852329KJ631745YNGXI2CQ`
+
+Chiến lược thanh toán:
+- 🌍 Khách quốc tế → PayPal subscription (auto-renew hàng năm, cancel anytime)
+- 🇻🇳 Khách Việt Nam → Chuyển khoản ACB (20699307 – HỒNG BẢO NGÂN)
+- Gumroad: đang dùng cho ebook, chưa đủ $100 để liên kết PayPal
+- Lemon Squeezy: bị từ chối (risk assessment)
+- Stripe: chưa được duyệt trực tiếp — thử lại sau khi có transaction history
+
+---
+
 ## 📝 Việc còn lại
 
 | Việc | Độ ưu tiên |
 |---|---|
-| Setup PayPal subscription button/link | 🔴 Cao |
-| Xóa GA4 property dư `G-50TDPNE8LB` và `blogpcs` (511792587) | 🟡 Trung bình |
+| Commit products.md VI + EN + ToS EN lên GitHub | 🔴 Cao |
+| Cập nhật ToS bản VI (auto-renew + HCM only) | 🔴 Cao |
+| Thêm `pcs.io.vn` vào Google Search Console + Change of Address | 🟡 Trung bình |
 | Thêm favicon + logo PCS (thay logo Docusaurus mặc định) | 🟡 Trung bình |
-| Thêm property `pcs.io.vn` vào Google Search Console + Change of Address | 🟡 Trung bình |
-| Dọn dẹp thư mục `i18n/vi/` cũ không cần thiết | 🟢 Thấp |
 | Trang For Business (nội dung coming soon → hoàn thiện) | 🟢 Thấp |
+| Dọn dẹp thư mục `i18n/vi/` cũ không cần thiết | 🟢 Thấp |
+| Apply Stripe trực tiếp sau khi có transaction history | 🟢 Thấp |
+
+### 2026-03-09
+- ✅ Dọn dẹp GA4: đổi tên property `blogpcs` → `pcs.io.vn`, xóa property trống 512222014
+- ✅ Xác nhận GTM + GA4 (G-7D44KTRL06) firing chuẩn qua Tag Assistant
+- ✅ Setup PayPal Subscription 3 gói (Experience / Peace of Mind / Comprehensive Care)
+- ✅ Cập nhật products.md VI + EN: thêm PayPal links, ACB, auto-renew, HCM only
+- ✅ Cập nhật ToS EN: auto-renew, cancel qua PayPal, HCM only, prices inclusive of taxes
+- ⏳ ToS VI chưa cập nhật auto-renew
 
 ---
 

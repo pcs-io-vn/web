@@ -23,9 +23,9 @@ PCS Vietnam provides remote technical support packages for individuals, includin
 
 ## 3. Subscription Plans
 
-- **Starter Plan** – 365,000 VND/year
-- **Peace of Mind Plan** – 999,000 VND/year
-- **Full Care Plan** – 1,999,000 VND/year
+- **Starter Plan** – $14.99 USD/year
+- **Peace of Mind Plan** – $39.99 USD/year
+- **Full Care Plan** – $79.99 USD/year
 
 Full feature details at: [pcs.io.vn/products](/en/products)
 
@@ -33,18 +33,19 @@ Full feature details at: [pcs.io.vn/products](/en/products)
 
 ## 4. Payment Terms
 
-- **12-month cycle** from the activation date.
-- Payment is made **once** for the full cycle — **no automatic renewal**.
-- Currency: VND or USD at the exchange rate at time of transaction.
-- Service begins only after **email/SMS activation confirmation**.
+- **12-month cycle** from the activation date, automatically renewing annually.
+- PayPal subscriptions are charged at the beginning of each billing cycle.
+- You may cancel your subscription at any time before the next renewal date.
+- Currency: USD (PayPal) or VND via bank transfer (Vietnam customers).
+- Service begins only after **email confirmation of activation**.
 
 ---
 
 ## 5. Cancellation Policy
 
-- Customers may cancel anytime via [info@pcs.io.vn](mailto:info@pcs.io.vn) or WhatsApp [+84977733339](https://wa.me/84977733339).
+- Customers may cancel anytime via [info@pcs.io.vn](mailto:info@pcs.io.vn), WhatsApp [+84977733339](https://wa.me/84977733339), or directly through their PayPal account.
 - Service remains active until the last day of the paid cycle.
-- Subscriptions **do not auto-renew** — customers will be notified before expiry.
+- Cancellation stops future renewals — no further charges after cancellation.
 
 ---
 
@@ -59,7 +60,7 @@ Full feature details at: [pcs.io.vn/products](/en/products)
 
 ## 7. Service Scope & Limitations
 
-- Primary support is remote. On-site support incurs an additional **150,000 – 250,000 VND/session**.
+- Primary support is remote. On-site support (Ho Chi Minh City only) incurs an additional **150,000 – 250,000 VND/session**.
 - Unused support hours **do not roll over** to the next cycle.
 - Additional hours may be purchased at **200,000 VND/hour**.
 - PCS is not liable for pre-existing hardware faults or issues outside the scope of remote technical support.
@@ -76,7 +77,7 @@ See full policy at: [Privacy Policy](/en/privacy)
 
 - **Monday – Friday:** After 7:00 PM
 - **Saturday – Sunday:** All day
-- Please book in advance via the [Service Request Form](https://calendar.app.google/r8cNH7giyokjRHP26) or [online scheduling](https://calendar.app.google/r8cNH7giyokjRHP26).
+- Please book in advance via the [online scheduling](https://calendar.app.google/r8cNH7giyokjRHP26).
 
 ---
 
@@ -86,7 +87,13 @@ PCS may update these terms. Existing customers will be notified via email at lea
 
 ---
 
-## 11. Contact
+## 11. Pricing
+
+All prices are inclusive of applicable taxes.
+
+---
+
+## 12. Contact
 
 - 📧 [info@pcs.io.vn](mailto:info@pcs.io.vn)
 - 💬 [WhatsApp: +84977733339](https://wa.me/84977733339)
