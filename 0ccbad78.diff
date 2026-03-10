@@ -1,0 +1,302 @@
+commit 0ccbad78f47e43a5c98be064e7a3866602f749d6
+Author: Hồng Bảo Ngân <hongbaongan@gmail.com>
+Date:   Mon Mar 9 21:39:19 2026 +0700
+
+    docs: update CONTEXT.md – PayPal plans, payment strategy, GA4 cleanup
+
+diff --git a/blog/CONTEXT.md b/blog/CONTEXT.md
+index 0b5d9d1..68507c9 100644
+--- a/blog/CONTEXT.md
++++ b/blog/CONTEXT.md
+@@ -222,16 +222,47 @@ jaxvn-blog/
+ 
+ ---
+ 
++## 💳 PayPal Subscription Plans
++
++| Gói | Giá USD | Plan ID |
++|---|---|---|
++| Experience Plan | $14.99/năm | P-8NF75640KE862722RNGXIUKI |
++| Peace of Mind Plan | $39.99/năm | P-2VY35053U2778302PNGXIZTY |
++| Comprehensive Care Plan | $79.99/năm | P-71852329KJ631745YNGXI2CQ |
++
++Subscribe links:
++- Experience: `https://www.paypal.com/webapps/billing/plans/subscribe?plan_id=P-8NF75640KE862722RNGXIUKI`
++- Peace of Mind: `https://www.paypal.com/webapps/billing/plans/subscribe?plan_id=P-2VY35053U2778302PNGXIZTY`
++- Comprehensive Care: `https://www.paypal.com/webapps/billing/plans/subscribe?plan_id=P-71852329KJ631745YNGXI2CQ`
++
++Chiến lược thanh toán:
++- 🌍 Khách quốc tế → PayPal subscription (auto-renew hàng năm, cancel anytime)
++- 🇻🇳 Khách Việt Nam → Chuyển khoản ACB (20699307 – HỒNG BẢO NGÂN)
++- Gumroad: đang dùng cho ebook, chưa đủ $100 để liên kết PayPal
++- Lemon Squeezy: bị từ chối (risk assessment)
++- Stripe: chưa được duyệt trực tiếp — thử lại sau khi có transaction history
++
++---
++
+ ## 📝 Việc còn lại
+ 
+ | Việc | Độ ưu tiên |
+ |---|---|
+-| Setup PayPal subscription button/link | 🔴 Cao |
+-| Xóa GA4 property dư `G-50TDPNE8LB` và `blogpcs` (511792587) | 🟡 Trung bình |
++| Commit products.md VI + EN + ToS EN lên GitHub | 🔴 Cao |
++| Cập nhật ToS bản VI (auto-renew + HCM only) | 🔴 Cao |
++| Thêm `pcs.io.vn` vào Google Search Console + Change of Address | 🟡 Trung bình |
+ | Thêm favicon + logo PCS (thay logo Docusaurus mặc định) | 🟡 Trung bình |
+-| Thêm property `pcs.io.vn` vào Google Search Console + Change of Address | 🟡 Trung bình |
+-| Dọn dẹp thư mục `i18n/vi/` cũ không cần thiết | 🟢 Thấp |
+ | Trang For Business (nội dung coming soon → hoàn thiện) | 🟢 Thấp |
++| Dọn dẹp thư mục `i18n/vi/` cũ không cần thiết | 🟢 Thấp |
++| Apply Stripe trực tiếp sau khi có transaction history | 🟢 Thấp |
++
++### 2026-03-09
++- ✅ Dọn dẹp GA4: đổi tên property `blogpcs` → `pcs.io.vn`, xóa property trống 512222014
++- ✅ Xác nhận GTM + GA4 (G-7D44KTRL06) firing chuẩn qua Tag Assistant
++- ✅ Setup PayPal Subscription 3 gói (Experience / Peace of Mind / Comprehensive Care)
++- ✅ Cập nhật products.md VI + EN: thêm PayPal links, ACB, auto-renew, HCM only
++- ✅ Cập nhật ToS EN: auto-renew, cancel qua PayPal, HCM only, prices inclusive of taxes
++- ⏳ ToS VI chưa cập nhật auto-renew
+ 
+ ---
+ 
+diff --git a/blog/i18n/en/docusaurus-plugin-content-pages/products.md b/blog/i18n/en/docusaurus-plugin-content-pages/products.md
+index 2f09514..b367a09 100644
+--- a/blog/i18n/en/docusaurus-plugin-content-pages/products.md
++++ b/blog/i18n/en/docusaurus-plugin-content-pages/products.md
+@@ -10,18 +10,24 @@ All plans have a **12-month cycle** from activation date. No automatic renewal.
+ ---
+ 
+ ## 🌱 Starter Plan
+-**365,000 ₫ / year**
++**365,000 ₫ / year** &nbsp;|&nbsp; **$14.99 USD / year**
+ 
+ - ✅ Automatic patch updates
+ - ✅ Email support
+-- ✅ Free initial setup assistance
++- ✅ Free initial Action1 agent setup assistance
+ 
+ Best for individuals who want their device always up to date and secure.
+ 
++💳 **Pay with PayPal (international):**  
++[▶ Subscribe – $14.99/year](https://www.paypal.com/webapps/billing/plans/subscribe?plan_id=P-8NF75640KE862722RNGXIUKI)
++
++🏦 **Pay via bank transfer (Vietnam):**  
++ACB – 20699307 – HỒNG BẢO NGÂN &nbsp;|&nbsp; Content: `PCS Starter [your name]`
++
+ ---
+ 
+ ## 🛡️ Peace of Mind Plan
+-**999,000 ₫ / year**
++**999,000 ₫ / year** &nbsp;|&nbsp; **$39.99 USD / year**
+ 
+ - ✅ Automatic patch updates
+ - ✅ Up to **5 hours** remote technical support/year *(max 1 hour/session)*
+@@ -29,10 +35,16 @@ Best for individuals who want their device always up to date and secure.
+ 
+ Best for users who need periodic support and peace of mind about device performance.
+ 
++💳 **Pay with PayPal (international):**  
++[▶ Subscribe – $39.99/year](https://www.paypal.com/webapps/billing/plans/subscribe?plan_id=P-2VY35053U2778302PNGXIZTY)
++
++🏦 **Pay via bank transfer (Vietnam):**  
++ACB – 20699307 – HỒNG BẢO NGÂN &nbsp;|&nbsp; Content: `PCS PeaceOfMind [your name]`
++
+ ---
+ 
+ ## ⭐ Full Care Plan
+-**1,999,000 ₫ / year**
++**1,999,000 ₫ / year** &nbsp;|&nbsp; **$79.99 USD / year**
+ 
+ - ✅ Automatic patch updates
+ - ✅ Up to **10 hours** remote technical support/year *(max 1 hour/session)*
+@@ -41,22 +53,28 @@ Best for users who need periodic support and peace of mind about device performa
+ 
+ Best for users who need frequent support and fast response times.
+ 
++💳 **Pay with PayPal (international):**  
++[▶ Subscribe – $79.99/year](https://www.paypal.com/webapps/billing/plans/subscribe?plan_id=P-71852329KJ631745YNGXI2CQ)
++
++🏦 **Pay via bank transfer (Vietnam):**  
++ACB – 20699307 – HỒNG BẢO NGÂN &nbsp;|&nbsp; Content: `PCS FullCare [your name]`
++
+ ---
+ 
+ ## General Terms
+ 
+-- 🔧 On-site support (if needed): additional **150,000 – 250,000 ₫/session**
++- 🔧 On-site support (Ho Chi Minh City only): additional **150,000 – 250,000 ₫/session**
+ - ⏱️ Extra hours: available at **200,000 ₫/hour**
+ - 📅 Valid for **12 months** from activation
+-- 🔄 No auto-renewal — you will be notified before expiry
++- 🔄 Automatically renews annually — cancel anytime
+ 
+ ---
+ 
+-## Subscribe Now
++## Need help choosing?
+ 
+ 📧 [info@pcs.io.vn](mailto:info@pcs.io.vn)  
+ 💬 [WhatsApp: +84 977 733 339](https://wa.me/84977733339)  
+ 🔗 [All channels](https://linktr.ee/jaxvn)  
+ 📅 [Book a consultation](https://calendar.app.google/r8cNH7giyokjRHP26)
+ 
+-> See [Terms of Service](/en/tos) for refund and cancellation policies.
+\ No newline at end of file
++> See [Terms of Service](/en/tos) and [Privacy Policy](/en/privacy) for refund and cancellation policies.
+\ No newline at end of file
+diff --git a/blog/i18n/en/docusaurus-plugin-content-pages/tos.md b/blog/i18n/en/docusaurus-plugin-content-pages/tos.md
+index 826a32b..3c5f571 100644
+--- a/blog/i18n/en/docusaurus-plugin-content-pages/tos.md
++++ b/blog/i18n/en/docusaurus-plugin-content-pages/tos.md
+@@ -23,9 +23,9 @@ PCS Vietnam provides remote technical support packages for individuals, includin
+ 
+ ## 3. Subscription Plans
+ 
+-- **Starter Plan** – 365,000 VND/year
+-- **Peace of Mind Plan** – 999,000 VND/year
+-- **Full Care Plan** – 1,999,000 VND/year
++- **Starter Plan** – $14.99 USD/year
++- **Peace of Mind Plan** – $39.99 USD/year
++- **Full Care Plan** – $79.99 USD/year
+ 
+ Full feature details at: [pcs.io.vn/products](/en/products)
+ 
+@@ -33,18 +33,19 @@ Full feature details at: [pcs.io.vn/products](/en/products)
+ 
+ ## 4. Payment Terms
+ 
+-- **12-month cycle** from the activation date.
+-- Payment is made **once** for the full cycle — **no automatic renewal**.
+-- Currency: VND or USD at the exchange rate at time of transaction.
+-- Service begins only after **email/SMS activation confirmation**.
++- **12-month cycle** from the activation date, automatically renewing annually.
++- PayPal subscriptions are charged at the beginning of each billing cycle.
++- You may cancel your subscription at any time before the next renewal date.
++- Currency: USD (PayPal) or VND via bank transfer (Vietnam customers).
++- Service begins only after **email confirmation of activation**.
+ 
+ ---
+ 
+ ## 5. Cancellation Policy
+ 
+-- Customers may cancel anytime via [info@pcs.io.vn](mailto:info@pcs.io.vn) or WhatsApp [+84977733339](https://wa.me/84977733339).
++- Customers may cancel anytime via [info@pcs.io.vn](mailto:info@pcs.io.vn), WhatsApp [+84977733339](https://wa.me/84977733339), or directly through their PayPal account.
+ - Service remains active until the last day of the paid cycle.
+-- Subscriptions **do not auto-renew** — customers will be notified before expiry.
++- Cancellation stops future renewals — no further charges after cancellation.
+ 
+ ---
+ 
+@@ -59,7 +60,7 @@ Full feature details at: [pcs.io.vn/products](/en/products)
+ 
+ ## 7. Service Scope & Limitations
+ 
+-- Primary support is remote. On-site support incurs an additional **150,000 – 250,000 VND/session**.
++- Primary support is remote. On-site support (Ho Chi Minh City only) incurs an additional **150,000 – 250,000 VND/session**.
+ - Unused support hours **do not roll over** to the next cycle.
+ - Additional hours may be purchased at **200,000 VND/hour**.
+ - PCS is not liable for pre-existing hardware faults or issues outside the scope of remote technical support.
+@@ -76,7 +77,7 @@ See full policy at: [Privacy Policy](/en/privacy)
+ 
+ - **Monday – Friday:** After 7:00 PM
+ - **Saturday – Sunday:** All day
+-- Please book in advance via the [Service Request Form](https://calendar.app.google/r8cNH7giyokjRHP26) or [online scheduling](https://calendar.app.google/r8cNH7giyokjRHP26).
++- Please book in advance via the [online scheduling](https://calendar.app.google/r8cNH7giyokjRHP26).
+ 
+ ---
+ 
+@@ -86,7 +87,13 @@ PCS may update these terms. Existing customers will be notified via email at lea
+ 
+ ---
+ 
+-## 11. Contact
++## 11. Pricing
++
++All prices are inclusive of applicable taxes.
++
++---
++
++## 12. Contact
+ 
+ - 📧 [info@pcs.io.vn](mailto:info@pcs.io.vn)
+ - 💬 [WhatsApp: +84977733339](https://wa.me/84977733339)
+diff --git a/blog/src/pages/products.md b/blog/src/pages/products.md
+index aa1d628..9b3f10c 100644
+--- a/blog/src/pages/products.md
++++ b/blog/src/pages/products.md
+@@ -5,7 +5,7 @@ description: Các gói đăng ký dịch vụ hỗ trợ kỹ thuật từ xa c
+ 
+ # Các gói dịch vụ 📦
+ 
+-Tất cả các gói có chu kỳ **12 tháng** kể từ ngày kích hoạt. Không tự động gia hạn.
++Tất cả các gói có chu kỳ **12 tháng**, tự động gia hạn hàng năm. Có thể hủy bất cứ lúc nào.
+ 
+ ---
+ 
+@@ -14,10 +14,16 @@ Tất cả các gói có chu kỳ **12 tháng** kể từ ngày kích hoạt. Kh
+ 
+ - ✅ Tự động cập nhật bản vá lỗi
+ - ✅ Hỗ trợ qua email
+-- ✅ Miễn phí hỗ trợ thiết lập ban đầu
++- ✅ Miễn phí hỗ trợ thiết lập Action1 agent lần đầu
+ 
+ Phù hợp cho người dùng cá nhân muốn thiết bị luôn được cập nhật và bảo mật.
+ 
++💳 **Thanh toán qua PayPal (quốc tế):**  
++[▶ Đăng ký – $14.99/năm](https://www.paypal.com/webapps/billing/plans/subscribe?plan_id=P-8NF75640KE862722RNGXIUKI)
++
++🏦 **Chuyển khoản ngân hàng (Việt Nam):**  
++ACB – 20699307 – HỒNG BẢO NGÂN &nbsp;|&nbsp; Nội dung: `PCS TraiNghiem [tên của bạn]`
++
+ ---
+ 
+ ## 🛡️ Gói An tâm
+@@ -29,6 +35,12 @@ Phù hợp cho người dùng cá nhân muốn thiết bị luôn được cập
+ 
+ Phù hợp cho người dùng cần hỗ trợ định kỳ và yên tâm về hiệu suất thiết bị.
+ 
++💳 **Thanh toán qua PayPal (quốc tế):**  
++[▶ Đăng ký – $39.99/năm](https://www.paypal.com/webapps/billing/plans/subscribe?plan_id=P-2VY35053U2778302PNGXIZTY)
++
++🏦 **Chuyển khoản ngân hàng (Việt Nam):**  
++ACB – 20699307 – HỒNG BẢO NGÂN &nbsp;|&nbsp; Nội dung: `PCS AnTam [tên của bạn]`
++
+ ---
+ 
+ ## ⭐ Gói Chăm sóc toàn diện
+@@ -41,22 +53,28 @@ Phù hợp cho người dùng cần hỗ trợ định kỳ và yên tâm về h
+ 
+ Phù hợp cho người dùng cần hỗ trợ thường xuyên và ưu tiên phản hồi nhanh.
+ 
++💳 **Thanh toán qua PayPal (quốc tế):**  
++[▶ Đăng ký – $79.99/năm](https://www.paypal.com/webapps/billing/plans/subscribe?plan_id=P-71852329KJ631745YNGXI2CQ)
++
++🏦 **Chuyển khoản ngân hàng (Việt Nam):**  
++ACB – 20699307 – HỒNG BẢO NGÂN &nbsp;|&nbsp; Nội dung: `PCS ChamSoc [tên của bạn]`
++
+ ---
+ 
+ ## Điều khoản chung
+ 
+-- 🔧 Hỗ trợ tại chỗ (nếu cần): phụ thu **150.000 – 250.000 ₫/buổi**
++- 🔧 Hỗ trợ tại chỗ (khu vực TP.HCM): phụ thu **150.000 – 250.000 ₫/buổi**
+ - ⏱️ Vượt giờ gói: mua thêm với giá **200.000 ₫/giờ**
+ - 📅 Hiệu lực: **12 tháng** kể từ ngày kích hoạt
+-- 🔄 Không tự động gia hạn — bạn sẽ được thông báo trước khi hết hạn
++- 🔄 Tự động gia hạn hàng năm — có thể hủy bất cứ lúc nào
+ 
+ ---
+ 
+-## Đăng ký ngay
++## Cần tư vấn thêm?
+ 
+ 📧 [info@pcs.io.vn](mailto:info@pcs.io.vn)  
+ 💬 [WhatsApp: 0977733339](https://wa.me/84977733339)  
+ 🔗 [Tất cả kênh liên lạc](https://linktr.ee/jaxvn)  
+ 📅 [Đặt lịch tư vấn](https://calendar.app.google/r8cNH7giyokjRHP26)
+ 
+-> Xem [Điều khoản dịch vụ](/tos) để biết thêm chi tiết về chính sách hoàn tiền và hủy đăng ký.
+\ No newline at end of file
++> Xem [Điều khoản dịch vụ](/tos) và [Chính sách bảo mật](/privacy) để biết thêm chi tiết về chính sách hoàn tiền và hủy đăng ký.
+\ No newline at end of file
