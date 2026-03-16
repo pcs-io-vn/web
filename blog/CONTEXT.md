@@ -1,284 +1,326 @@
-# PCS Vietnam – Project Context
-
-> File này dùng để đồng bộ context dự án giữa các AI agents và thiết bị.  
-> Cập nhật mỗi khi có thay đổi quan trọng.  
-> 📎 Raw URL: https://raw.githubusercontent.com/JaxVN/jaxvn-blog/refs/heads/main/blog/CONTEXT.md
+# PCS Vietnam — Project Context
+> Cập nhật: March 16, 2026  
+> Dùng file này để tiếp tục trên Claude Desktop hoặc session mới
 
 ---
 
-## 📌 Tổng quan dự án
+## 1. Người dùng & Tổ chức
 
-| Thông tin | Chi tiết |
-|---|---|
-| **Tên** | PCS Vietnam (Personal Computing Shield) |
-| **Chủ sở hữu** | JaxVN – cá nhân độc lập |
-| **Website** | https://pcs.io.vn (Docusaurus + Cloudflare Pages) |
-| **Website cũ** | https://www.pcs.io.vn (Google Sites – không còn dùng) |
-| **Repo** | https://github.com/JaxVN/jaxvn-blog |
-| **Email** | info@pcs.io.vn |
-| **WhatsApp** | https://wa.me/84977733339 |
-| **Linktree** | https://linktr.ee/jaxvn |
-| **Đặt lịch** | https://calendar.app.google/r8cNH7giyokjRHP26 |
-| **PayPal** | https://paypal.me/jaxhong |
+| Field | Value |
+|-------|-------|
+| **Tên** | JaxVN |
+| **Công ty** | PCS Vietnam |
+| **Website** | pcs.io.vn (Docusaurus, GitHub Pages) |
+| **Domain AD** | KIENA.LOCAL |
+| **RMM** | Action1 (free ≤200 endpoints) |
+| **MDM** | Chưa có Intune — workgroup + domain mix |
+| **Machine mẫu** | KIENA\STCD00558 — user ngan.hong, OU: KIENA.LOCAL/KIENA/STC |
 
 ---
 
-## 🏗️ Kiến trúc kỹ thuật
+## 2. Repos
 
-| Thành phần | Chi tiết |
-|---|---|
-| **Framework** | Docusaurus 3.7.0 |
-| **Ngôn ngữ mặc định** | Tiếng Việt (`vi`) |
-| **Ngôn ngữ phụ** | Tiếng Anh (`en`) |
-| **Deploy** | Cloudflare Pages (tự động khi push lên `main`) |
-| **Build command** | `npm install && npm run build` |
-| **Root directory** | `blog` |
-| **Build output** | `build` |
-| **DNS** | Cloudflare – CNAME `pcs.io.vn` + `www.pcs.io.vn` → `jaxvn-blog.pages.dev` |
-| **Package manager** | npm (không dùng yarn) |
-| **GTM** | GTM-N6QN7WNL |
-| **GA4 Account** | `pcsiovn` – ID 374041080 |
-| **GA4 Property** | `pcs.io.vn` (đổi tên từ `blogpcs`) – ID 511792587 |
-| **GA4 Measurement ID** | G-7D44KTRL06 |
-| **GA4 Stream** | pcs.io.vn – https://pcs.io.vn |
+| Repo | Mục đích | Deploy |
+|------|---------|--------|
+| `JaxVN/jaxvn-blog` | pcs.io.vn — Docusaurus blog + tools | GitHub Pages |
+| `JaxVN/RDPS` | Script library — PowerShell Set/Remove pairs | GitHub (raw download) |
 
 ---
 
-## 🗺️ Sitemap
+## 3. GPO hiện tại tại KIENA.LOCAL (từ GPReport2026.html)
+
+Máy STCD00558 đang áp dụng các GPO sau:
+
+| GPO | Nội dung |
+|-----|---------|
+| `Default Domain Policy` | Password min 3 chars, Audit, Offline logon cache 10 |
+| `C_LAPS_Config` | LAPS: 30 ngày, 8 ký tự, Large+Small+Numbers+Specials |
+| `C_LAPS_Deploy` | Cài LAPS.x64.msi từ `\\kiena.local\NETLOGON\LAPS\` |
+| `C_Firewall_GPO` | WinRM TCP 5985, WMI DCOM TCP 135, Remote Task Scheduler |
+| `C_Lock Workstation` | Tự khóa sau 600 giây (10 phút) |
+| `C_Default Lock Screen` | Wallpaper `KA_desktop_2560x1440.jpg` từ NETLOGON |
+| `C_Store BitLocker` | BitLocker recovery lưu vào AD DS |
+| `C_Turn Off Autorun` | Tắt AutoPlay/AutoRun toàn bộ ổ đĩa |
+| `DesktopBackGround` | Copy wallpaper từ `\\stcvm001\NETLOGON\wallpaper\` |
+| `Enable WinRM` | WinRM service Automatic Delayed Start |
+| `Disable News and Interests` | Tắt widget News trên taskbar |
+| `Fortigate` | ❌ Denied — bị block, không áp dụng |
+
+**Browser policies active (từ policies.json export):**
+- `ShowHomeButton` = true
+- `HomepageLocation` = https://kienacorp.sharepoint.com/
+- `HomepageIsNewTabPage` = false
+- `LocalNetworkAccessAllowedForUrls` = [kienacorp.sharepoint.com, kienacorp-my.sharepoint.com]
+
+---
+
+## 4. Kiến trúc hệ thống — 5 Layers
 
 ```
-pcs.io.vn/
-├── /                           Trang chủ
-├── /products                   Các gói đăng ký
-├── /services                   Tổng quan dịch vụ
-│   ├── /services/remote-it-support   Hỗ trợ từ xa
-│   ├── /services/hardware-repair     Sửa phần cứng
-│   └── /services/for-business        Cho doanh nghiệp (coming soon)
-├── /guides                     Hướng dẫn cài UltraViewer
-├── /resources                  Download agent Windows/macOS
-├── /contact                    Liên hệ
-├── /payments                   Thanh toán
-├── /tos                        Điều khoản dịch vụ
-└── /privacy                    Chính sách bảo mật
-
-Bản EN tương ứng tại /en/[trang]
+Layer 0: SaaS Platform        — app.pcs.io.vn (Phase 3-4, tương lai)
+Layer 1: Control Plane        — Policy Engine, Script Generator, Profile Engine
+Layer 2: Policy Content       — Browser (✅), Windows Hardening (P2), AppLocker (P3)
+Layer 3: Deploy Engine        — Action1 ✅, AD GPO ✅, Intune (P2), PS1 Manual ✅
+Layer 4: Endpoint             — Workgroup PC, Domain PC (KIENA.LOCAL), Server
 ```
 
+**Triết lý:**  
+- Kế thừa HotCakeX (Harden System Security + AppControl Manager) cho policy taxonomy & compliance concept  
+- Tập trung vào Deploy Engine — thứ HotCakeX không có  
+- Web-first — chạy trên browser, không cần Windows 11
+
 ---
 
-## 📁 Cấu trúc repo
+## 5. Kế thừa từ HotCakeX
+
+| Source | Kế thừa | Cách dùng |
+|--------|---------|-----------|
+| Harden System Security | Category structure Windows policies | Map → Policy JSON → Set-*.ps1 |
+| Harden System Security | Compliance Check + Security Score | Verify-*.ps1 → registry read → score |
+| AppControl Manager | AppLocker/WDAC rule taxonomy (Publisher/Path/Hash) | Set-AppLocker-*.ps1 |
+| AppControl Manager | Policy XML schema cho WDAC | Parse → UI → Generate |
+| Cả 2 | Zero-dependency philosophy | PS1 standalone, không cần install thêm |
+
+**Không reinvent:** taxonomy, compliance check, WDAC schema  
+**Tập trung vào:** deployment layer, web UI, script library, multi-tenant SaaS
+
+---
+
+## 6. RDPS Repo Structure (JaxVN/RDPS)
 
 ```
-jaxvn-blog/
-└── blog/
-    ├── src/
-    │   └── pages/              ← Nội dung tiếng Việt (mặc định)
-    │       ├── index.md
-    │       ├── products.md
-    │       ├── guides.md
-    │       ├── resources.md
-    │       ├── contact.md
-    │       ├── payments.md
-    │       ├── tos.md
-    │       ├── privacy.md
-    │       └── services/
-    │           ├── index.md
-    │           ├── remote-it-support.md
-    │           ├── hardware-repair.md
-    │           └── for-business.md
-    ├── i18n/
-    │   └── en/
-    │       ├── docusaurus-plugin-content-pages/  ← Bản dịch EN
-    │       │   ├── index.md
-    │       │   ├── products.md
-    │       │   ├── guides.md
-    │       │   ├── resources.md
-    │       │   ├── contact.md
-    │       │   ├── payments.md
-    │       │   ├── tos.md
-    │       │   ├── privacy.md
-    │       │   └── services/
-    │       │       ├── index.md
-    │       │       ├── remote-it-support.md
-    │       │       ├── hardware-repair.md
-    │       │       └── for-business.md
-    │       └── docusaurus-theme-classic/
-    │           ├── navbar.json                   ← Label menu EN
-    │           └── footer.json                   ← Label footer EN
-    ├── docusaurus.config.js
-    ├── package.json
-    └── CONTEXT.md              ← File này
+RDPS/
+├── browser/edge-chrome/
+│   ├── ✅ Set-HomeButton-EdgeChrome.ps1
+│   ├── ✅ Remove-HomeButton-EdgeChrome.ps1
+│   └── ... (1 policy = 1 Set + 1 Remove luôn luôn)
+├── windows/              ← P2: kế thừa HotCakeX categories
+├── applocker/            ← P3: kế thừa AppControl Manager
+├── firewall/             ← P2: style C_Firewall_GPO
+├── profiles/
+│   ├── standard.json
+│   ├── kiosk.json
+│   └── developer.json
+└── lib/
+    └── Common.ps1        ← Write-Log, Ensure-RegistryPath
 ```
 
----
+**Naming convention:** `Set-{Feature}-{Browser}.ps1` / `Remove-{Feature}-{Browser}.ps1`
 
-## 💼 Sản phẩm & Dịch vụ
-
-### Gói đăng ký cá nhân
-
-| Gói | Giá | Nổi bật |
-|---|---|---|
-| Trải nghiệm | 365.000 ₫/năm | Auto update + email support |
-| An tâm | 999.000 ₫/năm | 5h remote support/năm |
-| Chăm sóc toàn diện | 1.999.000 ₫/năm | 10h + ưu tiên 1-2h |
-
-### Dịch vụ
-
-- **Remote IT Support**: Hỗ trợ từ xa trước, nếu không giải quyết được → pickup thiết bị → sửa → trả qua Grab (khu vực HCM)
-- **Hardware Repair**: Pickup tận nơi → chẩn đoán → báo giá → sửa → trả qua Grab (HCM)
-- **For Business**: Coming soon
-
-### Bảng giá remote support
-
-| Thời gian | Tổng |
-|---|---|
-| Dưới 60 phút | 275.000 ₫ |
-| 90 phút | 425.000 ₫ |
-| Mỗi giờ thêm | +150.000 ₫ |
-| Hỗ trợ tại chỗ | +150.000–250.000 ₫/buổi |
+**Script template chuẩn:**
+- `#Requires -RunAsAdministrator`
+- `.SYNOPSIS`, `.DESCRIPTION`, `.NOTES` (Version, Date, Browsers, Source URL)
+- `Write-Log` function (hoặc dot-source từ lib/Common.ps1)
+- `Ensure-RegistryPath` function
+- `try/catch` với `exit 0` / `exit 1`
 
 ---
 
-## 💳 Thanh toán
+## 7. Browser Policy Excel
 
-| Kênh | Chi tiết |
-|---|---|
-| **ACB** | STK: 20699307 – HỒNG BẢO NGÂN – ACB PGD Tân Uyên – Swift: ASCBVNVX |
-| **PayPal** | https://paypal.me/jaxhong |
+**File:** `browser-policy-list.xlsx`  
+**81 policies** Edge + Chrome, 6 sheets:
 
----
+| Sheet | Nội dung |
+|-------|---------|
+| 📖 Hướng dẫn | Legend, giải thích cột |
+| 🌐 Browser Policies | 81 policies đầy đủ, AutoFilter 18 cột |
+| ⚙ KAG Active | 4 policies đang active tại KIENA.LOCAL |
+| 📝 RDPS Scripts | Set/Remove script mapping |
+| 🔒 Software Restriction | Placeholder 12 nhóm (AppLocker, Defender, UAC...) |
+| 📊 Summary | Dashboard thống kê |
 
-## 📋 Điều khoản quan trọng (tóm tắt)
-
-- Chu kỳ 12 tháng, không tự động gia hạn
-- Hoàn tiền 100% trong 7 ngày nếu chưa dùng
-- Sau 7 ngày: không hoàn, trừ lỗi từ PCS
-- Thông báo thay đổi điều khoản trước 14 ngày
-- ToS: `https://pcs.io.vn/tos`
-- Privacy Policy: `https://pcs.io.vn/privacy`
+**18 cột:** PolicyName, Category, Caption_EN, Caption_VI, Edge_Support, Chrome_Support, Edge_RegPath, Chrome_RegPath, ValueType, DefaultValue, SupportedValues, Scope, KAG_Active, KAG_Value, RDPS_Script, Deploy_Channel, Priority, Notes
 
 ---
 
-## 🕐 Thời gian hỗ trợ
+## 8. Browser Policy Generator Tool
 
-- Thứ 2–6: Sau 19:00
-- Thứ 7–CN: Cả ngày
-- Lý do: Chủ sở hữu có công việc chính từ T2–T6
-
----
-
-## 📡 Kênh liên lạc
-
-| Kênh | Link |
-|---|---|
-| WhatsApp | https://wa.me/84977733339 |
-| Email | info@pcs.io.vn |
-| Linktree | https://linktr.ee/jaxvn |
-| Đặt lịch | https://calendar.app.google/r8cNH7giyokjRHP26 |
-
-> ⚠️ Zalo đã ngừng sử dụng — chuyển hoàn toàn sang WhatsApp
+**File:** `browser-policy-generator-v2.jsx`  
+**Tính năng:**
+- 3-panel layout: Policy list | Config | Script output
+- Luôn generate cả Set-*.ps1 VÀ Remove-*.ps1
+- View modes: Split (cả hai) | Set only | Remove only
+- Per-policy browser selection (Edge / Chrome checkboxes)
+- Toggle: "Use lib/Common.ps1" cho RDPS integration
+- ~17 policies implemented: HomeButton, Homepage, SmartScreen, PasswordManager, InPrivate, ClearOnExit, JavaScript, Popups, Notifications, DefaultSearch, DownloadDirectory, ExtensionBlock, Proxy, SyncDisabled, Printing...
 
 ---
 
-## 🔧 Công cụ hỗ trợ từ xa
+## 9. Compliance Tracker — pcs.io.vn/c
 
-| Tool | Mục đích |
-|---|---|
-| **UltraViewer** | Remote support tức thời (không cần cài đặt sẵn) |
-| **Action1 Agent** | Patch management tự động (cài sẵn cho khách hàng có gói) |
+### Mục đích
+Platform tự đánh giá tuân thủ cho SMB Vietnam (1–50 người), tương tự ISMS.online nhưng nhẹ hơn, tiếng Việt, tích hợp M365.
 
-### Link download Action1 Agent
+### Frameworks
+- **ISO 27001:2022** — Annex A, 93 controls, lọc theo quy mô
+- **ISO 42001:2023** — 11 controls AI management
+- **M365 Adoption Score** — 8 dimensions, map sang ISO controls
 
-- **Windows**: `https://app.action1.com/agent/a3ec8694-8920-11ee-8f6e-53e2d9b96c81/Windows/agent(PCS).msi`
-- **macOS**: `https://app.action1.com/agent/a3ec8694-8920-11ee-8f6e-53e2d9b96c81/Mac/agent(PCS).pkg`
+### URL Pattern
+```
+pcs.io.vn/c          → Landing (nhập tên công ty)
+pcs.io.vn/c#kiena    → Dashboard tenant "kiena"
+pcs.io.vn/c#abc-corp → Dashboard tenant "abc-corp"
+```
+Hash = tenant slug. Data lưu localStorage với key `pcs_compliance_{tenant}_{type}`.
 
----
+### Files cần đặt trong jaxvn-blog
 
-## 📅 Lịch sử phát triển
+```
+jaxvn-blog/src/
+├── pages/
+│   └── c.jsx                              ← Docusaurus page, đọc hash
+└── components/
+    └── ComplianceApp/
+        ├── index.jsx                      ← Wrapper, quản lý localStorage per tenant
+        └── ComplianceTracker.jsx          ← Logic chính (từ compliance-tracker.jsx)
+```
 
-### 2026-03-08
-- ✅ Soạn bộ ToS + Refund Policy + Privacy Policy song ngữ VI/EN
-- ✅ Xác nhận cá nhân độc lập hợp lệ bán subscription trên PayPal
-- ✅ Migrate website từ Google Sites sang Docusaurus
-- ✅ Setup i18n VI/EN với locale dropdown
-- ✅ Soạn toàn bộ nội dung 12 trang (VI + EN), bao gồm `/privacy`
-- ✅ Fix build errors: package.json, yarn.lock → npm
-- ✅ Deploy thành công lên Cloudflare Pages
-- ✅ Navbar dropdown Services hoạt động
-- ✅ Chuyển ngôn ngữ VI/EN hoạt động
-- ✅ Footer cập nhật: bỏ Zalo, thêm WhatsApp + Linktree + Privacy Policy
-- ✅ Tách Privacy Policy thành trang `/privacy` riêng (VI + EN)
-- ✅ ToS Điều 8 link sang `/privacy` thay vì inline
-- ✅ Chuyển domain chính từ `blog.pcs.io.vn` → `pcs.io.vn`
-- ✅ DNS Cloudflare: CNAME `pcs.io.vn` + `www.pcs.io.vn` → `jaxvn-blog.pages.dev`
-- ✅ GTM-N6QN7WNL gắn vào website qua `headTags` trong docusaurus.config.js
-- ✅ Consent Mode v2 setup trong GTM (Custom HTML, Consent Initialization trigger)
-- ✅ GA4 tag (G-7D44KTRL06) setup trong GTM (Google Tag, All Pages trigger)
-- ✅ Xóa consentmanager.net cookie banner
-- ✅ Xác nhận GTM firing chuẩn qua Tag Assistant
-- ✅ Dọn dẹp GA4: đổi tên property `blogpcs` → `pcs.io.vn`
-- ✅ Xóa GA4 property trống (512222014) trong account Personal
-- ✅ Xác nhận G-7D44KTRL06 là Measurement ID đúng, data đang chạy vào property 511792587
+### c.jsx — logic chính
+```jsx
+// Đọc tenant từ hash
+const hash = window.location.hash.replace('#', '').trim().toLowerCase()
+const tenant = /^[a-z0-9-]{1,50}$/.test(hash) ? hash : null
 
----
+// Nếu không có tenant → Landing (input + button)
+// Nếu có tenant → lazy load ComplianceApp với tenant prop
+```
 
-## 💳 PayPal Subscription Plans
+### Migrate lên c.pcs.io.vn sau này
+Đổi 1 dòng trong c.jsx:
+```js
+// Từ hash:
+const tenant = window.location.hash.replace('#', '')
+// Thành subdomain:
+const tenant = window.location.hostname.split('.')[0]
+```
 
-| Gói | Giá USD | Plan ID |
-|---|---|---|
-| Experience Plan | $14.99/năm | P-8NF75640KE862722RNGXIUKI |
-| Peace of Mind Plan | $39.99/năm | P-2VY35053U2778302PNGXIZTY |
-| Comprehensive Care Plan | $79.99/năm | P-71852329KJ631745YNGXI2CQ |
+### Dashboard 5 tab
+| Tab | Nội dung |
+|-----|---------|
+| 📊 Tổng quan | Score rings (ISO 27001, 42001, M365), progress theo nhóm, quick wins |
+| 🔐 ISO 27001 | Checklist 93 controls, filter theme + effort, Done/Partial/Chưa/N/A |
+| 🤖 ISO 42001 | 11 controls AI, chỉ hiện nếu chọn framework này |
+| ☁️ M365 Score | Nhập điểm 8 dimensions, map → ISO controls |
+| 🗺 Lộ trình | 3 giai đoạn tự động theo effort |
 
-Subscribe links:
-- Experience: `https://www.paypal.com/webapps/billing/plans/subscribe?plan_id=P-8NF75640KE862722RNGXIUKI`
-- Peace of Mind: `https://www.paypal.com/webapps/billing/plans/subscribe?plan_id=P-2VY35053U2778302PNGXIZTY`
-- Comprehensive Care: `https://www.paypal.com/webapps/billing/plans/subscribe?plan_id=P-71852329KJ631745YNGXI2CQ`
+### ISO 27001 — 4 themes
+- **Org (🏛)** — Tổ chức: policy, IAM, supplier, incident
+- **Ppl (👥)** — Con người: hiring, training, offboarding
+- **Phy (🏢)** — Vật lý: access control, clean desk, thiết bị
+- **Tech (⚙️)** — Công nghệ: endpoint, MFA, patch, backup, DLP
 
-Chiến lược thanh toán:
-- 🌍 Khách quốc tế → PayPal subscription (auto-renew hàng năm, cancel anytime)
-- 🇻🇳 Khách Việt Nam → Chuyển khoản ACB (20699307 – HỒNG BẢO NGÂN)
-- Gumroad: đang dùng cho ebook, chưa đủ $100 để liên kết PayPal
-- Lemon Squeezy: bị từ chối (risk assessment)
-- Stripe: chưa được duyệt trực tiếp — thử lại sau khi có transaction history
-
----
-
-## 📝 Việc còn lại
-
-| Việc | Độ ưu tiên |
-|---|---|
-| Commit products.md VI + EN + ToS EN lên GitHub | 🔴 Cao |
-| Cập nhật ToS bản VI (auto-renew + HCM only) | 🔴 Cao |
-| Thêm `pcs.io.vn` vào Google Search Console + Change of Address | 🟡 Trung bình |
-| Thêm favicon + logo PCS (thay logo Docusaurus mặc định) | 🟡 Trung bình |
-| Trang For Business (nội dung coming soon → hoàn thiện) | 🟢 Thấp |
-| Dọn dẹp thư mục `i18n/vi/` cũ không cần thiết | 🟢 Thấp |
-| Apply Stripe trực tiếp sau khi có transaction history | 🟢 Thấp |
-
-### 2026-03-09
-- ✅ Dọn dẹp GA4: đổi tên property `blogpcs` → `pcs.io.vn`, xóa property trống 512222014
-- ✅ Xác nhận GTM + GA4 (G-7D44KTRL06) firing chuẩn qua Tag Assistant
-- ✅ Setup PayPal Subscription 3 gói (Experience / Peace of Mind / Comprehensive Care)
-- ✅ Cập nhật products.md VI + EN: thêm PayPal links, ACB, auto-renew, HCM only
-- ✅ Cập nhật ToS EN: auto-renew, cancel qua PayPal, HCM only, prices inclusive of taxes
-- ⏳ ToS VI chưa cập nhật auto-renew
+### Mapping RDPS ↔ ISO 27001
+| ISO Control | RDPS Connection |
+|-------------|----------------|
+| 8.9 — Configuration Management | Set-*.ps1 scripts = evidence |
+| 8.23 — Web Filtering | Browser Policy Generator |
+| 8.7 — Anti-malware | Defender policy scripts |
+| 8.1 — Endpoint | Intune/Action1 + RDPS |
 
 ---
 
-## 🤖 Hướng dẫn cho AI Agent
+## 10. Deploy Architecture
 
-Khi làm việc với dự án này:
+### Hiện tại (Phase 1)
+```
+pcs.io.vn        → GitHub Pages (Docusaurus — jaxvn-blog repo)
+pcs.io.vn/c      → Same repo, src/pages/c.jsx (Compliance Tracker)
+pcs.io.vn/tools/ → Browser Policy Generator, etc.
+```
+**Chi phí: $0. Deploy: push GitHub → auto build.**
 
-1. **Ngôn ngữ mặc định là Tiếng Việt** — file VI để trong `src/pages/`, file EN để trong `i18n/en/docusaurus-plugin-content-pages/`
-2. **Không dùng Zalo** — dùng WhatsApp `https://wa.me/84977733339`
-3. **Pickup/hoàn trả chỉ áp dụng khu vực HCM** qua Grab
-4. **Build bằng npm**, không phải yarn
-5. **Commit nhỏ, rõ ràng** — mỗi commit một việc cụ thể
-6. **Cloudflare tự build** khi push lên branch `main` — không cần build local
-7. **Context file duy nhất**: `blog/CONTEXT.md` — không tạo file context khác
-8. **Domain chính là `pcs.io.vn`** — không dùng `blog.pcs.io.vn` nữa
+### Phase 2 (khi có ~10 khách)
+```
+pcs.io.vn/c#tenant  → vẫn giữ
+api.pcs.io.vn       → Cloudflare Workers + D1 (thay localStorage)
+```
+D1 schema: `tenants`, `controls`, `m365_scores`
+
+### Phase 3 (khi có khách trả tiền)
+```
+*.pcs.io.vn         → Wildcard CNAME → Cloudflare Pages
+kiena.pcs.io.vn     → Đọc hostname.split('.')[0] = "kiena"
+```
+1 DNS record wildcard phục vụ tất cả tenant.
 
 ---
 
-*Cập nhật lần cuối: 2026-03-09 bởi Claude (Anthropic) + JaxVN*
+## 11. SaaS Vision (tương lai)
+
+| Tier | Giới hạn | Giá |
+|------|---------|-----|
+| Free | ≤50 endpoints, community templates | $0 |
+| Pro | Unlimited, custom profiles, audit log, Intune export | ~$X/tháng |
+| Enterprise | On-premise, WDAC, SSO/SAML, compliance reports | Liên hệ |
+
+Mô hình giống Action1: Free tier → SMB Vietnam tự đăng ký → upsell Pro khi scale.
+
+---
+
+## 12. Roadmap
+
+| Phase | Timeline | Nội dung |
+|-------|---------|---------|
+| **P1** ✅ Đang làm | Tuần 1-2 | 81 policies Excel/JSON, browser-policy-generator-v2, RDPS 10 script pairs, compliance-tracker deploy pcs.io.vn/c |
+| **P2** | Tuần 3-6 | Windows Hardening (kế thừa HotCakeX), GPO ADMX export, Intune JSON, Verify-*.ps1 compliance check |
+| **P3** | Tuần 7-10 | AppLocker/WDAC (kế thừa AppControl Manager), Node.js backend, PostgreSQL, auth, profile CRUD |
+| **P4** | Tuần 11+ | Multi-tenant SaaS, tenant isolation, RBAC, Action1 API webhook, compliance dashboard |
+
+---
+
+## 13. Files đã tạo (outputs)
+
+| File | Mô tả |
+|------|-------|
+| `browser-policy-list.xlsx` | 81 policies Excel, 6 sheets |
+| `browser-policy-generator-v2.jsx` | React tool generate Set+Remove PS1 |
+| `compliance-tracker.jsx` | Compliance dashboard standalone |
+| `c.jsx` | Docusaurus page — pcs.io.vn/c |
+| `ComplianceApp.index.jsx` | Wrapper component (đổi tên → index.jsx) |
+| `ComplianceTracker.jsx` | Logic compliance (tenant-aware) |
+| `architecture.jsx` | Architecture diagram 5 layers |
+| `deploy-guide-c.pcs.io.vn.docx` | Hướng dẫn deploy (dở dang do lỗi syntax) |
+
+---
+
+## 14. Tech Stack
+
+| Layer | Tech |
+|-------|------|
+| Frontend | React 18, Docusaurus 3, IBM Plex Mono |
+| Styling | CSS-in-JS (inline), không dùng Tailwind |
+| State | useState + localStorage (Phase 1), Cloudflare KV/D1 (Phase 2) |
+| Build | Vite (tools standalone), Docusaurus build (blog+pages) |
+| Deploy | GitHub Pages (Phase 1), Cloudflare Pages (Phase 2+) |
+| Backend | Cloudflare Workers + D1 (Phase 2), Node.js + PostgreSQL (Phase 3) |
+| Scripts | PowerShell 5.1+, `#Requires -RunAsAdministrator` |
+| RMM | Action1 (free ≤200), GPO (domain), Intune (Phase 2) |
+
+---
+
+## 15. Quy tắc đặt tên
+
+**PowerShell scripts:**
+```
+Set-{Feature}-{Browser}.ps1       Set-ShowHomeButton-EdgeChrome.ps1
+Remove-{Feature}-{Browser}.ps1    Remove-ShowHomeButton-EdgeChrome.ps1
+Verify-{Feature}-{Browser}.ps1    Verify-ShowHomeButton-EdgeChrome.ps1
+```
+
+**Tenant slugs:** `[a-z0-9-]{1,50}` — chữ thường, số, gạch ngang  
+**localStorage keys:** `pcs_compliance_{tenant}_{config|controls|m365}`  
+**API endpoints:** `api.pcs.io.vn/api/tenant/{slug}[/controls|/m365]`
+
+---
+
+## 16. Câu hỏi còn mở / việc cần làm tiếp
+
+- [ ] Push 3 files (c.jsx, ComplianceApp/index.jsx, ComplianceTracker.jsx) vào jaxvn-blog
+- [ ] Test local: `npm run start` → `localhost:3000/c`
+- [ ] Tạo 10 RDPS script pairs đầu tiên (browser policies KAG đang dùng)
+- [ ] Hoàn thiện browser-policy-list.xlsx — bổ sung thêm policy chưa có registry path
+- [ ] Quyết định font chữ cho pcs.io.vn (hiện IBM Plex Mono cho tool pages)
+- [ ] Thiết kế landing page `pcs.io.vn/c` — hiện chỉ có input box đơn giản
+- [ ] Tìm hiểu HotCakeX source code sâu hơn cho Windows Hardening taxonomy (Phase 2)
