@@ -108,7 +108,7 @@ function CompliancePageContent() {
 
   // Lazy import ComplianceApp — chỉ load khi có tenant
   const ComplianceApp = React.lazy(() =>
-    import('../../components/ComplianceApp')
+    import('../components/ComplianceApp')
   );
 
   return (
