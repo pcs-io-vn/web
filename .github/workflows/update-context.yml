@@ -1,0 +1,56 @@
+name: Update CONTEXT.md
+
+# Chỉ trigger qua API — không tự chạy khi push
+on:
+  workflow_dispatch:
+    inputs:
+      content:
+        description: 'Nội dung CONTEXT.md (base64 encoded)'
+        required: true
+        type: string
+      commit_message:
+        description: 'Commit message'
+        required: false
+        default: 'chore: update CONTEXT.md from Claude'
+        type: string
+
+jobs:
+  update-context:
+    runs-on: ubuntu-latest
+    # Chỉ cho phép chạy từ branch main
+    if: github.ref == 'refs/heads/main' || github.event_name == 'workflow_dispatch'
+
+    permissions:
+      contents: write  # Chỉ cấp quyền write contents, không hơn
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          # Dùng PAT thay vì GITHUB_TOKEN mặc định
+          # để commit không trigger các workflow khác
+          token: ${{ secrets.CLAUDE_PAT }}
+
+      - name: Decode và ghi CONTEXT.md
+        run: |
+          # Decode base64 → file (tránh vấn đề special chars khi truyền qua API)
+          echo "${{ github.event.inputs.content }}" | base64 --decode > CONTEXT.md
+          echo "✅ CONTEXT.md đã được ghi ($(wc -l < CONTEXT.md) dòng)"
+
+      - name: Validate file không rỗng
+        run: |
+          if [ ! -s CONTEXT.md ]; then
+            echo "❌ CONTEXT.md rỗng — abort"
+            exit 1
+          fi
+
+      - name: Commit và push
+        run: |
+          git config user.name  "claude-context-bot"
+          git config user.email "bot@pcs.io.vn"
+          git add CONTEXT.md
+          # --allow-empty-message false là default, dùng || exit 0 nếu không có gì thay đổi
+          git diff --staged --quiet && echo "Không có thay đổi" && exit 0
+          git commit -m "${{ github.event.inputs.commit_message }}"
+          git push
+          echo "✅ Đã push CONTEXT.md lên main"
