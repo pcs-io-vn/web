@@ -85,6 +85,25 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
               { label: 'Cho doanh nghiệp', to: '/services/for-business' },
             ],
           },
+          {
+  type: 'dropdown',
+  label: 'Công cụ',
+  position: 'left',
+  items: [
+    {
+      label: 'Tất cả công cụ',
+      to: '/tools',
+    },
+    {
+      label: '🔐 Compliance Tracker',
+      to: '/c',
+    },
+    {
+      label: '🌐 Browser Policy Manager',
+      to: '/tools/browser-policy',
+    },
+  ],
+},
           { to: '/guides', label: 'Hướng dẫn', position: 'left' },
           { to: '/resources', label: 'Tài nguyên', position: 'left' },
           { to: '/payments', label: 'Thanh toán', position: 'left' },
