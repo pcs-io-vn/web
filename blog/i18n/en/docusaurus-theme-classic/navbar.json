@@ -27,6 +27,22 @@
     "message": "For Business",
     "description": "Navbar dropdown item: For Business"
   },
+  "item.label.Công cụ": {
+    "message": "Tools",
+    "description": "Navbar dropdown: Tools"
+  },
+  "item.label.Tất cả công cụ": {
+    "message": "All Tools",
+    "description": "Navbar dropdown item: All Tools"
+  },
+  "item.label.🔐 Compliance Tracker": {
+    "message": "🔐 Compliance Tracker",
+    "description": "Navbar dropdown item: Compliance Tracker"
+  },
+  "item.label.🌐 Browser Policy Manager": {
+    "message": "🌐 Browser Policy Manager",
+    "description": "Navbar dropdown item: Browser Policy Manager"
+  },
   "item.label.Hướng dẫn": {
     "message": "Guides",
     "description": "Navbar link: Guides"
