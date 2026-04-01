@@ -53,7 +53,16 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
       /** @type {import('@docusaurus/preset-classic').Options} */
       ({
         docs: false,
-        blog: false,
+        blog: {
+          showReadingTime: true,
+          editUrl:
+            'https://github.com/JaxVN/jaxvn-blog/tree/main/blog/',
+          blogTitle: 'PCS Blog',
+          blogDescription: 'Chia sẻ kiến thức kỹ thuật và hướng dẫn sử dụng.',
+          postsPerPage: 'ALL',
+          blogSidebarTitle: 'Toàn bộ bài viết',
+          blogSidebarCount: 'ALL',
+        },
         theme: {
           customCss: './src/css/custom.css',
         },
@@ -74,6 +83,7 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
         },
         items: [
           { to: '/products', label: 'Sản phẩm', position: 'left' },
+          { to: '/blog', label: 'Blog', position: 'left' },
           {
             type: 'dropdown',
             label: 'Dịch vụ',
