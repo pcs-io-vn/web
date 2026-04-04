@@ -21,15 +21,16 @@ export default function Tools() {
         </ul>
         <p><a href="/c"><strong>👉 Dùng ngay — miễn phí</strong></a></p>
         <hr />
-        <h2>🔔 Sắp ra mắt</h2>
         <h3>🌐 Browser Policy Manager</h3>
-        <p>Quản lý cấu hình Edge và Chrome tập trung — triển khai qua Action1, GPO hoặc Intune.</p>
+        <p>Tạo script PowerShell quản lý policy Edge và Chrome — triển khai qua Action1, GPO hoặc thủ công.</p>
         <ul>
-          <li>81+ policies Edge/Chrome</li>
-          <li>Tạo script triển khai tự động</li>
-          <li>Hỗ trợ Action1 / GPO / Intune / PowerShell</li>
+          <li>15+ policies Edge/Chrome với registry path chuẩn</li>
+          <li>Tự động tạo cả Set-*.ps1 và Remove-*.ps1</li>
+          <li>Tuỳ chọn tích hợp RDPS lib/Common.ps1</li>
         </ul>
-        <p><a href="/services/for-business">🔔 Đăng ký nhận thông báo</a></p>
+        <p><a href="/tools/browser-policy"><strong>👉 Dùng ngay — miễn phí</strong></a></p>
+        <hr />
+        <h2>🔔 Sắp ra mắt</h2>
         <h3>📜 RDPS Script Library</h3>
         <p>Thư viện PowerShell script chuẩn hoá để quản lý Windows policy.</p>
         <p><a href="https://github.com/JaxVN/RDPS" target="_blank" rel="noopener noreferrer">🔔 Theo dõi tại GitHub</a></p>
