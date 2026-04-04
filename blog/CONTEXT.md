@@ -10,7 +10,7 @@
 |-------|-------|
 | **Tên** | JaxVN |
 | **Công ty** | PCS Vietnam |
-| **Website** | pcs.io.vn (Docusaurus, GitHub Pages) |
+| **Website** | pcs.io.vn (Docusaurus, Cloudflare Pages) |
 | **Domain AD** | KIENA.LOCAL |
 | **RMM** | Action1 (free ≤200 endpoints) |
 | **MDM** | Chưa có Intune — workgroup + domain mix |
@@ -22,7 +22,7 @@
 
 | Repo | Mục đích | Deploy |
 |------|---------|--------|
-| `JaxVN/jaxvn-blog` | pcs.io.vn — Docusaurus blog + tools | GitHub Pages |
+| `JaxVN/jaxvn-blog` | pcs.io.vn — Docusaurus blog + tools | Cloudflare Pages |
 | `JaxVN/RDPS` | Script library — PowerShell Set/Remove pairs | GitHub (raw download) |
 
 ---
