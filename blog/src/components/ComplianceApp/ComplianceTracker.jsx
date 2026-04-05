@@ -938,32 +938,65 @@ export default function ComplianceTracker({ tenant, config: externalConfig, onCo
   const [localConfig, setLocalConfig] = useState(null);
   const config = standalone ? localConfig : externalConfig;
 
-  // Persist control status vào localStorage với tenant key
-  const [controlStatus, setControlStatus] = useState(() => {
-    if (typeof window === 'undefined') return {};
-    try {
-      if (storage && tenant) {
-        return JSON.parse(localStorage.getItem(storage.key(tenant, 'controls')) || '{}');
-      }
-      return JSON.parse(localStorage.getItem('pcs_controls_standalone') || '{}');
-    } catch { return {}; }
-  });
+  // Load control status từ storage (API hoặc localStorage fallback)
+  const [controlStatus, setControlStatus] = useState({});
+  const [loadingStatus, setLoadingStatus] = useState(true);
 
-  // Sync control status về localStorage mỗi khi thay đổi
+  // Load từ storage.get() (API) on mount
   useEffect(() => {
-    if (typeof window === 'undefined') return;
+    if (typeof window === 'undefined' || !tenant) return;
+
+    (async () => {
+      try {
+        if (storage && storage.get) {
+          // Load từ API backend
+          const controls = await storage.get(tenant, 'controls');
+          setControlStatus(controls || {});
+        } else {
+          // Fallback: load từ localStorage standalone mode
+          const data = JSON.parse(localStorage.getItem('pcs_controls_standalone') || '{}');
+          setControlStatus(data);
+        }
+      } catch (err) {
+        console.error('Failed to load control status:', err);
+        setControlStatus({});
+      } finally {
+        setLoadingStatus(false);
+      }
+    })();
+  }, [tenant, storage]);
+
+  // Sync control status cập nhật → storage.set() (API)
+  useEffect(() => {
+    if (typeof window === 'undefined' || loadingStatus || !controlStatus || Object.keys(controlStatus).length === 0) return;
+
     try {
-      const key = (storage && tenant)
-        ? storage.key(tenant, 'controls')
-        : 'pcs_controls_standalone';
-      localStorage.setItem(key, JSON.stringify(controlStatus));
-    } catch {}
-  }, [controlStatus, tenant, storage]);
+      if (storage && storage.set && tenant) {
+        // Async save to API
+        storage.set(tenant, 'controls', controlStatus).catch(err =>
+          console.error('Failed to save control status:', err)
+        );
+      } else {
+        // Fallback: save to localStorage standalone
+        localStorage.setItem('pcs_controls_standalone', JSON.stringify(controlStatus));
+      }
+    } catch (err) {
+      console.error('Failed to sync control status:', err);
+    }
+  }, [controlStatus, tenant, storage, loadingStatus]);
 
   const handleComplete = (data) => {
     if (standalone) setLocalConfig(data);
     else onComplete?.(data);
   };
+
+  if (loadingStatus && tenant) {
+    return (
+      <div style={{ padding: 48, textAlign: 'center', opacity: 0.5, fontFamily: 'monospace' }}>
+        Đang tải dữ liệu...
+      </div>
+    );
+  }
 
   return config
     ? <Dashboard config={config} controlStatus={controlStatus} setControlStatus={setControlStatus} onReset={onReset} />
