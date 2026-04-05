@@ -93,9 +93,52 @@ function Landing() {
   );
 }
 
+// ─── OAuth callback handler — catch ?code= from redirect ──────────────────
+async function handleOAuthCallback() {
+  const params = new URLSearchParams(window.location.search);
+  const code = params.get('code');
+  const state = params.get('state');
+
+  if (!code) return false;
+
+  try {
+    // Exchange code for JWT
+    const response = await fetch('https://auth.pcs.io.vn/oauth/token', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        grant_type: 'authorization_code',
+        client_id: '3706e2f9-72e3-49f3-803e-aec4e5cd5614',
+        client_secret: '59a144a848c27931f2c742e662402eefcb79427f98e9fa7a066c39f6ee4c73c6',
+        code,
+        redirect_uri: window.location.origin + window.location.pathname,
+      }),
+    });
+
+    if (!response.ok) {
+      console.error('OAuth token exchange failed:', response.status);
+      return false;
+    }
+
+    const data = await response.json();
+    if (data.access_token) {
+      localStorage.setItem('pcs_token', data.access_token);
+      // Remove code from URL
+      window.history.replaceState({}, '', window.location.pathname + window.location.hash);
+      return true;
+    }
+  } catch (err) {
+    console.error('OAuth callback error:', err);
+  }
+
+  return false;
+}
+
 // ─── App wrapper — lazy load ComplianceApp để tránh SSR ───────────────────
 function CompliancePageContent() {
   const [tenant, setTenant] = useState(getTenant);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [loading, setLoading] = useState(true);
 
   // Lắng nghe hashchange để navigate giữa tenant / landing
   useEffect(() => {
@@ -104,9 +147,57 @@ function CompliancePageContent() {
     return () => window.removeEventListener('hashchange', onHash);
   }, []);
 
+  // Check auth + handle OAuth callback
+  useEffect(() => {
+    (async () => {
+      // Try OAuth callback first
+      const logged = await handleOAuthCallback();
+      if (logged) {
+        setIsAuthenticated(true);
+        setLoading(false);
+        return;
+      }
+
+      // Check for existing token
+      const token = localStorage.getItem('pcs_token');
+      if (token) {
+        setIsAuthenticated(true);
+      } else if (tenant) {
+        // No token + tenant present → redirect to OAuth
+        const redirectUri = `${window.location.origin}${window.location.pathname}`;
+        const authUrl = new URL('https://auth.pcs.io.vn/oauth/authorize');
+        authUrl.searchParams.set('client_id', '3706e2f9-72e3-49f3-803e-aec4e5cd5614');
+        authUrl.searchParams.set('redirect_uri', redirectUri);
+        authUrl.searchParams.set('response_type', 'code');
+        authUrl.searchParams.set('scope', 'mcp');
+        authUrl.searchParams.set('code_challenge_method', 'S256');
+        window.location.href = authUrl.toString();
+        return;
+      }
+
+      setLoading(false);
+    })();
+  }, [tenant]);
+
+  if (loading) {
+    return (
+      <div style={{ padding: 48, textAlign: 'center', opacity: 0.5, fontFamily: 'monospace' }}>
+        Đang xác thực...
+      </div>
+    );
+  }
+
   if (!tenant) return <Landing />;
 
-  // Lazy import ComplianceApp — chỉ load khi có tenant
+  if (!isAuthenticated) {
+    return (
+      <div style={{ padding: 48, textAlign: 'center', opacity: 0.7, fontFamily: 'monospace' }}>
+        Đang chuyển hướng đến đăng nhập...
+      </div>
+    );
+  }
+
+  // Lazy import ComplianceApp — chỉ load khi có tenant + auth
   const ComplianceApp = React.lazy(() =>
     import('../components/ComplianceApp')
   );
