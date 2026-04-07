@@ -83,7 +83,7 @@ function Landing() {
           value={slug}
           onChange={e => setSlug(e.target.value)}
           onKeyDown={e => e.key === 'Enter' && ready && go('local')}
-          placeholder="tên-công-ty (ví dụ: kiena)"
+          placeholder="tên-công-ty (ví dụ: pcs-vietnam)"
           style={inputStyle}
           autoFocus
         />

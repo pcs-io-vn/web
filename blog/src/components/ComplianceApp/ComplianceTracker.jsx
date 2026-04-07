@@ -163,10 +163,10 @@ const font = "'IBM Plex Mono', 'Fira Code', monospace";
 // ═══════════════════════════════════════════════════════════════════════════
 // ONBOARDING WIZARD
 // ═══════════════════════════════════════════════════════════════════════════
-function OnboardingWizard({ onComplete }) {
+function OnboardingWizard({ onComplete, initialName = "" }) {
   const [step, setStep] = useState(0);
   const [data, setData] = useState({
-    companyName: "", size: "", frameworks: [], m365: false, useAI: false,
+    companyName: initialName, size: "", frameworks: [], m365: false, useAI: false,
   });
 
   const canNext = () => {
@@ -211,7 +211,7 @@ function OnboardingWizard({ onComplete }) {
             <input
               value={data.companyName}
               onChange={e => setData(d => ({...d, companyName: e.target.value}))}
-              placeholder="Ví dụ: KIENA Corp, ABC Startup..."
+              placeholder="Ví dụ: PCS Vietnam, ABC Corp..."
               style={{
                 width: "100%", background: S.card, border: `1px solid ${S.cardBorder}`,
                 borderRadius: 10, padding: "14px 16px", fontSize: 14,
@@ -998,7 +998,12 @@ export default function ComplianceTracker({ tenant, config: externalConfig, onCo
     );
   }
 
+  // Chuyển tenant slug thành display name: "pcs-vietnam" → "Pcs Vietnam"
+  const initialName = tenant
+    ? tenant.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')
+    : '';
+
   return config
     ? <Dashboard config={config} controlStatus={controlStatus} setControlStatus={setControlStatus} onReset={onReset} />
-    : <OnboardingWizard onComplete={handleComplete} />;
+    : <OnboardingWizard onComplete={handleComplete} initialName={initialName} />;
 }
