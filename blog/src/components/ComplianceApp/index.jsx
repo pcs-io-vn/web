@@ -26,6 +26,7 @@ const LocalStorage = {
   clear: async (tenant) => {
     localStorage.removeItem(`pcs_compliance_${tenant}_controls`);
     localStorage.removeItem(`pcs_compliance_${tenant}_m365`);
+    localStorage.removeItem(`pcs_compliance_${tenant}_config`);
   },
 };
 
@@ -112,8 +113,14 @@ export default function ComplianceApp({ tenant, mode }) {
             localStorage.removeItem('pcs_controls_standalone');
           } catch {}
         } else {
-          // Local: set config ngay, không cần API call
-          setConfig({ tenant, timestamp: Date.now() });
+          // Local: load saved config (full object with frameworks/size/etc.)
+          // If null → ComplianceTracker shows OnboardingWizard
+          try {
+            const saved = JSON.parse(localStorage.getItem(`pcs_compliance_${tenant}_config`) || 'null');
+            setConfig(saved);
+          } catch {
+            setConfig(null);
+          }
         }
       } catch (err) {
         console.error('Failed to load config:', err);
@@ -132,7 +139,15 @@ export default function ComplianceApp({ tenant, mode }) {
     );
   }
 
-  const handleComplete = (data) => setConfig({ ...data, tenant, timestamp: Date.now() });
+  const handleComplete = (data) => {
+    const newConfig = { ...data, tenant, timestamp: Date.now() };
+    setConfig(newConfig);
+    if (!isCloud) {
+      try {
+        localStorage.setItem(`pcs_compliance_${tenant}_config`, JSON.stringify(newConfig));
+      } catch {}
+    }
+  };
 
   const handleReset = () => {
     if (window.confirm(`Xoá toàn bộ data của "${tenant}"?`)) {
