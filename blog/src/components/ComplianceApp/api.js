@@ -108,3 +108,29 @@ export async function addM365Score(score, date, maxScore = 100) {
 
   return await response.json();
 }
+
+/**
+ * POST /compliance/controls/upsert — upsert control status by control_id string
+ * Works for new tenants with no D1 rows. Uses ON CONFLICT DO UPDATE.
+ * @param {string} control_id - control identifier like "5.1" or "ai.5.2"
+ * @param {string} status - backend status: 'not-started'|'in-progress'|'implemented'|'na'
+ * @param {string} framework - 'iso27001' or 'iso42001'
+ * @param {string} [title] - optional title
+ * @returns {Promise<Object>}
+ */
+export async function upsertControl(control_id, status, framework, title = '') {
+  const response = await fetch(`${API_BASE}/controls/upsert`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      ...getAuthHeader(),
+    },
+    body: JSON.stringify({ control_id, status, framework, title }),
+  });
+
+  if (!response.ok) {
+    throw new Error(`POST upsert ${control_id} failed: ${response.status}`);
+  }
+
+  return await response.json();
+}
