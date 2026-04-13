@@ -102,20 +102,34 @@ export default function ComplianceApp({ tenant, mode }) {
   useEffect(() => {
     (async () => {
       try {
-        // Config (companyName, size, frameworks) lưu local cho cả 2 mode —
-        // đây là thiết lập browser, không cần sync cloud.
-        // null → ComplianceTracker hiện OnboardingWizard
-        try {
-          const saved = JSON.parse(localStorage.getItem(`pcs_compliance_${tenant}_config`) || 'null');
-          // Validate required fields trước khi dùng
-          const valid = saved?.frameworks?.length && saved?.size ? saved : null;
-          setConfig(valid);
-        } catch {
-          setConfig(null);
-        }
+        // Config (companyName, size, frameworks)
+        // Cloud mode: fetch từ D1 API
+        // Local mode: lưu local (browser settings)
+        let saved = null;
 
         if (isCloud) {
-          // Cleanup old localStorage keys (chỉ controls/m365, giữ config)
+          // Cloud mode: fetch from API
+          try {
+            saved = await API.getConfig();
+          } catch (err) {
+            console.error('Failed to load config from API:', err);
+            saved = null;
+          }
+        } else {
+          // Local mode: read from localStorage
+          try {
+            saved = JSON.parse(localStorage.getItem(`pcs_compliance_${tenant}_config`) || 'null');
+          } catch {
+            saved = null;
+          }
+        }
+
+        // Validate required fields
+        const valid = saved?.frameworks?.length && saved?.size ? saved : null;
+        setConfig(valid);
+
+        if (isCloud) {
+          // Cleanup old localStorage keys (chỉ controls/m365)
           try {
             localStorage.removeItem(`pcs_compliance_${tenant}_controls`);
             localStorage.removeItem(`pcs_compliance_${tenant}_m365`);
@@ -139,13 +153,24 @@ export default function ComplianceApp({ tenant, mode }) {
     );
   }
 
-  const handleComplete = (data) => {
+  const handleComplete = async (data) => {
     const newConfig = { ...data, tenant, timestamp: Date.now() };
     setConfig(newConfig);
-    // Config lưu local cho cả 2 mode (thiết lập browser)
-    try {
-      localStorage.setItem(`pcs_compliance_${tenant}_config`, JSON.stringify(newConfig));
-    } catch {}
+
+    // Save config to appropriate storage
+    if (isCloud) {
+      // Cloud mode: save to API (D1)
+      try {
+        await API.saveConfig(data.companyName, data.size, data.frameworks);
+      } catch (err) {
+        console.error('Failed to save config to API:', err);
+      }
+    } else {
+      // Local mode: save to localStorage
+      try {
+        localStorage.setItem(`pcs_compliance_${tenant}_config`, JSON.stringify(newConfig));
+      } catch {}
+    }
   };
 
   const handleReset = () => {

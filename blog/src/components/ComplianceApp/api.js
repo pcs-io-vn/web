@@ -134,3 +134,54 @@ export async function upsertControl(control_id, status, framework, title = '') {
 
   return await response.json();
 }
+
+/**
+ * GET /compliance/config — fetch tenant config (company name, size, frameworks)
+ * @returns {Promise<Object|null>}
+ */
+export async function getConfig() {
+  try {
+    const response = await fetch(`${API_BASE}/config`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        ...getAuthHeader(),
+      },
+    });
+
+    if (!response.ok) {
+      return null;
+    }
+
+    const data = await response.json();
+    return data.config || null;
+  } catch (e) {
+    console.error('getConfig failed:', e);
+    return null;
+  }
+}
+
+/**
+ * POST /compliance/config — save tenant config
+ * @param {string} companyName - company name
+ * @param {string} size - company size (small, medium, large)
+ * @param {Array<string>} frameworks - selected frameworks (iso27001, iso42001)
+ * @returns {Promise<boolean>}
+ */
+export async function saveConfig(companyName, size, frameworks) {
+  try {
+    const response = await fetch(`${API_BASE}/config`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        ...getAuthHeader(),
+      },
+      body: JSON.stringify({ company_name: companyName, size, frameworks }),
+    });
+
+    return response.ok;
+  } catch (e) {
+    console.error('saveConfig failed:', e);
+    return false;
+  }
+}
