@@ -87,6 +87,14 @@ function Landing({ initialSlug = '', showAuthTab = null, onAuthSuccess }) {
     setAuthError('');
     setSubmitting(true);
     const clean = slug.trim().toLowerCase().replace(/[^a-z0-9-]/g, '-');
+
+    // Validate slug length and format
+    if (!/^[a-z0-9-]{2,50}$/.test(clean)) {
+      setAuthError('Tên công ty phải có 2–50 ký tự, chỉ dùng chữ thường, số, gạch ngang');
+      setSubmitting(false);
+      return;
+    }
+
     try {
       let token;
       if (tab === 'login') {
@@ -167,12 +175,15 @@ function Landing({ initialSlug = '', showAuthTab = null, onAuthSuccess }) {
           />
         </div>
       ) : (
-        <div style={{
-          padding: '12px 14px', borderRadius: 8, background: 'var(--ifm-color-emphasis-100)',
-          border: '1px solid var(--ifm-color-emphasis-300)', textAlign: 'center',
-          fontSize: 13, color: 'var(--ifm-font-color-base)', width: '100%', maxWidth: 420,
-        }}>
-          Công ty: <strong>{slug}</strong>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 6, width: '100%', maxWidth: 420 }}>
+          <label style={{ fontSize: 12, fontWeight: 600, opacity: 0.7 }}>Slug công ty</label>
+          <input
+            value={slug}
+            onChange={e => setSlug(e.target.value)}
+            placeholder="vi-du-abc"
+            style={inputStyle}
+          />
+          <div style={{ fontSize: 11, opacity: 0.5 }}>(dùng để phân biệt tenant, min 2 ký tự, chỉ chữ thường/số/gạch ngang)</div>
         </div>
       )}
 
