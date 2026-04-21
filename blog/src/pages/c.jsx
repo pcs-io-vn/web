@@ -76,6 +76,10 @@ function Landing({ initialSlug = '', showAuthTab = null, onAuthSuccess }) {
   const [authError, setAuthError] = useState('');
   const [submitting, setSubmitting] = useState(false);
 
+  // Forgot password state
+  const [resetEmail, setResetEmail] = useState('');
+  const [resetMessage, setResetMessage] = useState('');
+
   const go = (mode) => {
     const clean = slug.trim().toLowerCase().replace(/[^a-z0-9-]/g, '-');
     if (!clean) return;
@@ -111,6 +115,26 @@ function Landing({ initialSlug = '', showAuthTab = null, onAuthSuccess }) {
       onAuthSuccess(token, clean);
     } catch (e) {
       setAuthError(e.message);
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const handleForgotPassword = async () => {
+    setResetMessage('');
+    setSubmitting(true);
+    try {
+      const res = await fetch('https://auth.pcs.io.vn/auth/forgot-password', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: resetEmail.toLowerCase().trim() }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data.error || data.message || `Lỗi ${res.status}`);
+      setResetMessage('✓ Link đặt lại mật khẩu đã được gửi. Kiểm tra email của bạn.');
+      setResetEmail('');
+    } catch (e) {
+      setResetMessage(`✗ ${e.message}`);
     } finally {
       setSubmitting(false);
     }
@@ -225,14 +249,14 @@ function Landing({ initialSlug = '', showAuthTab = null, onAuthSuccess }) {
         <div style={{ width: '100%', maxWidth: 420 }}>
           {/* Tab row */}
           <div style={{ display: 'flex', borderBottom: '1px solid var(--ifm-color-emphasis-300)', marginBottom: 20 }}>
-            {['login', 'register'].map(t => (
+            {['login', 'register', 'forgot'].map(t => (
               <button key={t} onClick={() => setTab(t)} style={{
                 flex: 1, padding: '8px 0', background: 'none', border: 'none',
-                cursor: 'pointer', fontFamily: 'inherit', fontSize: 13, fontWeight: tab === t ? 700 : 400,
+                cursor: 'pointer', fontFamily: 'inherit', fontSize: 12, fontWeight: tab === t ? 700 : 400,
                 borderBottom: tab === t ? '2px solid var(--ifm-color-primary)' : '2px solid transparent',
                 color: tab === t ? 'var(--ifm-color-primary)' : 'inherit', marginBottom: -1,
               }}>
-                {t === 'login' ? 'Đăng nhập' : 'Đăng ký'}
+                {t === 'login' ? 'Đăng nhập' : t === 'register' ? 'Đăng ký' : 'Quên mật khẩu'}
               </button>
             ))}
           </div>
@@ -247,21 +271,43 @@ function Landing({ initialSlug = '', showAuthTab = null, onAuthSuccess }) {
                 style={inputStyle}
               />
             )}
-            <input
-              value={email}
-              onChange={e => setEmail(e.target.value)}
-              placeholder="Email"
-              type="email"
-              style={inputStyle}
-            />
-            <input
-              value={password}
-              onChange={e => setPassword(e.target.value)}
-              placeholder="Mật khẩu (tối thiểu 8 ký tự)"
-              type="password"
-              style={inputStyle}
-              onKeyDown={e => e.key === 'Enter' && !submitting && handleSubmit()}
-            />
+
+            {tab !== 'forgot' && (
+              <input
+                value={email}
+                onChange={e => setEmail(e.target.value)}
+                placeholder="Email"
+                type="email"
+                style={inputStyle}
+              />
+            )}
+
+            {tab !== 'forgot' && (
+              <input
+                value={password}
+                onChange={e => setPassword(e.target.value)}
+                placeholder="Mật khẩu (tối thiểu 8 ký tự)"
+                type="password"
+                style={inputStyle}
+                onKeyDown={e => e.key === 'Enter' && !submitting && handleSubmit()}
+              />
+            )}
+
+            {tab === 'forgot' && (
+              <>
+                <input
+                  value={resetEmail}
+                  onChange={e => setResetEmail(e.target.value)}
+                  placeholder="Email tài khoản"
+                  type="email"
+                  style={inputStyle}
+                  onKeyDown={e => e.key === 'Enter' && !submitting && handleForgotPassword()}
+                />
+                <div style={{ fontSize: 12, opacity: 0.6, lineHeight: 1.5 }}>
+                  Nhập email tài khoản của bạn. Chúng tôi sẽ gửi link đặt lại mật khẩu.
+                </div>
+              </>
+            )}
 
             {authError && (
               <div style={{ background: '#fee2e2', color: '#991b1b', padding: '8px 12px', borderRadius: 6, fontSize: 13 }}>
@@ -269,12 +315,24 @@ function Landing({ initialSlug = '', showAuthTab = null, onAuthSuccess }) {
               </div>
             )}
 
-            <button onClick={handleSubmit} disabled={submitting} style={{
+            {resetMessage && (
+              <div style={{
+                background: resetMessage.includes('✓') ? '#dcfce7' : '#fee2e2',
+                color: resetMessage.includes('✓') ? '#166534' : '#991b1b',
+                padding: '8px 12px', borderRadius: 6, fontSize: 13
+              }}>
+                {resetMessage}
+              </div>
+            )}
+
+            <button onClick={tab === 'forgot' ? handleForgotPassword : handleSubmit} disabled={submitting} style={{
               ...btnBase, background: 'var(--ifm-color-primary)', color: '#fff',
               cursor: submitting ? 'default' : 'pointer', opacity: submitting ? 0.7 : 1,
               width: '100%',
             }}>
-              {submitting ? 'Đang xử lý...' : (tab === 'login' ? 'Đăng nhập' : 'Tạo tài khoản')}
+              {submitting ? 'Đang xử lý...' : (
+                tab === 'forgot' ? 'Gửi link đặt lại' : (tab === 'login' ? 'Đăng nhập' : 'Tạo tài khoản')
+              )}
             </button>
 
             <div onClick={() => onAuthSuccess(null, null)} style={{
@@ -442,6 +500,15 @@ function CompliancePageContent() {
     );
   }
 
+  const handleLogout = () => {
+    if (window.confirm('Bạn muốn đăng xuất?')) {
+      localStorage.removeItem('pcs_token');
+      localStorage.removeItem(`pcs_mode_${tenant}`);
+      window.location.hash = '';
+      window.location.reload();
+    }
+  };
+
   const ComplianceApp = React.lazy(() => import('../components/ComplianceApp'));
 
   return (
@@ -450,7 +517,31 @@ function CompliancePageContent() {
         Đang tải...
       </div>
     }>
-      <ComplianceApp tenant={tenant} mode={mode} />
+      <div style={{ position: 'relative' }}>
+        <button
+          onClick={handleLogout}
+          style={{
+            position: 'fixed',
+            top: 16,
+            right: 16,
+            padding: '8px 14px',
+            fontSize: 12,
+            fontWeight: 700,
+            border: 'none',
+            borderRadius: 6,
+            background: '#EF4444',
+            color: 'white',
+            cursor: 'pointer',
+            zIndex: 1000,
+            transition: 'all 0.2s',
+          }}
+          onMouseEnter={e => e.target.style.background = '#DC2626'}
+          onMouseLeave={e => e.target.style.background = '#EF4444'}
+        >
+          Đăng xuất
+        </button>
+        <ComplianceApp tenant={tenant} mode={mode} />
+      </div>
     </React.Suspense>
   );
 }
