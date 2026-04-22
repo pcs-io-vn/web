@@ -29,11 +29,6 @@ export default function Tools() {
           <li>Tuỳ chọn tích hợp RDPS lib/Common.ps1</li>
         </ul>
         <p><a href="/tools/browser-policy"><strong>👉 Dùng ngay — miễn phí</strong></a></p>
-        <hr />
-        <h2>🔔 Sắp ra mắt</h2>
-        <h3>📜 RDPS Script Library</h3>
-        <p>Thư viện PowerShell script chuẩn hoá để quản lý Windows policy.</p>
-        <p><a href="https://github.com/JaxVN/RDPS" target="_blank" rel="noopener noreferrer">🔔 Theo dõi tại GitHub</a></p>
       </main>
     </Layout>
   );
