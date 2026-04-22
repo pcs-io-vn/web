@@ -92,7 +92,7 @@ const APIStorage = {
 };
 
 // ─── ComplianceApp — chọn storage dựa trên mode ──────────────────────────
-export default function ComplianceApp({ tenant, mode }) {
+export default function ComplianceApp({ tenant, mode, onLogout, logoutLabel }) {
   const [config, setConfig] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -186,6 +186,8 @@ export default function ComplianceApp({ tenant, mode }) {
       config={config}
       onComplete={handleComplete}
       onReset={handleReset}
+      onLogout={onLogout}
+      logoutLabel={logoutLabel}
       storage={storage}
     />
   );

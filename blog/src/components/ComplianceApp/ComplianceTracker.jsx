@@ -344,7 +344,7 @@ function OnboardingWizard({ onComplete, initialName = "" }) {
 // ═══════════════════════════════════════════════════════════════════════════
 // MAIN DASHBOARD
 // ═══════════════════════════════════════════════════════════════════════════
-function Dashboard({ config, controlStatus: externalStatus, setControlStatus: externalSetStatus, onReset }) {
+function Dashboard({ config, controlStatus: externalStatus, setControlStatus: externalSetStatus, onReset, onLogout, logoutLabel }) {
   const [activeTab, setActiveTab] = useState("overview");
   // Use external controlStatus if provided (from wrapper), else internal
   const [internalStatus, setInternalStatus] = useState({});
@@ -476,6 +476,13 @@ function Dashboard({ config, controlStatus: externalStatus, setControlStatus: ex
               color:"rgba(239,68,68,0.6)", borderRadius:8, padding:"5px 10px",
               cursor:"pointer", fontFamily:font, fontSize:10, marginLeft:8,
             }} title="Xoá data tenant này">⊗ Reset</button>
+          )}
+          {onLogout && (
+            <button onClick={onLogout} style={{
+              background:"rgba(239,68,68,0.12)", border:"1px solid rgba(239,68,68,0.4)",
+              color:"rgba(239,68,68,0.9)", borderRadius:8, padding:"5px 12px",
+              cursor:"pointer", fontFamily:font, fontSize:11, fontWeight:600, marginLeft:4,
+            }}>{logoutLabel || 'Đăng xuất'}</button>
           )}
         </div>
       </div>
@@ -931,7 +938,7 @@ function Dashboard({ config, controlStatus: externalStatus, setControlStatus: ex
 // ROOT — nhận props từ ComplianceApp wrapper (tenant, config, onComplete, storage)
 // Khi dùng standalone (artifact viewer): không cần props, tự quản lý state
 // ═══════════════════════════════════════════════════════════════════════════
-export default function ComplianceTracker({ tenant, config: externalConfig, onComplete, onReset, storage }) {
+export default function ComplianceTracker({ tenant, config: externalConfig, onComplete, onReset, onLogout, logoutLabel, storage }) {
   const standalone = !onComplete; // chạy standalone trong artifact viewer
 
   // State nội bộ cho standalone mode
@@ -1004,6 +1011,6 @@ export default function ComplianceTracker({ tenant, config: externalConfig, onCo
     : '';
 
   return config
-    ? <Dashboard config={config} controlStatus={controlStatus} setControlStatus={setControlStatus} onReset={onReset} />
+    ? <Dashboard config={config} controlStatus={controlStatus} setControlStatus={setControlStatus} onReset={onReset} onLogout={onLogout} logoutLabel={logoutLabel} />
     : <OnboardingWizard onComplete={handleComplete} initialName={initialName} />;
 }

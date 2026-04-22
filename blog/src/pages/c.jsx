@@ -492,32 +492,12 @@ function CompliancePageContent() {
       </div>
     }>
       <div style={{ position: 'relative' }}>
-        {mode === 'cloud' ? (
-          <button
-            onClick={handleLogout}
-            style={{
-              position: 'fixed', top: 16, right: 16, padding: '8px 14px',
-              fontSize: 12, fontWeight: 700, border: 'none', borderRadius: 6,
-              background: '#EF4444', color: 'white', cursor: 'pointer', zIndex: 1000,
-            }}
-          >
-            Đăng xuất
-          </button>
-        ) : (
-          <button
-            onClick={handleSwitchCompany}
-            style={{
-              position: 'fixed', top: 16, right: 16, padding: '8px 14px',
-              fontSize: 12, fontWeight: 700, borderRadius: 6,
-              border: '1px solid var(--ifm-color-emphasis-300)',
-              background: 'var(--ifm-background-surface-color)',
-              color: 'var(--ifm-font-color-base)', cursor: 'pointer', zIndex: 1000,
-            }}
-          >
-            Đổi công ty
-          </button>
-        )}
-        <ComplianceApp tenant={tenant} mode={mode} />
+        <ComplianceApp
+          tenant={tenant}
+          mode={mode}
+          onLogout={mode === 'cloud' ? handleLogout : handleSwitchCompany}
+          logoutLabel={mode === 'cloud' ? 'Đăng xuất' : 'Đổi công ty'}
+        />
       </div>
     </React.Suspense>
   );
