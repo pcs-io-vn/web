@@ -2,14 +2,13 @@ import React, { useState, useEffect } from 'react';
 import Layout from '@theme/Layout';
 import BrowserOnly from '@docusaurus/BrowserOnly';
 
-// ─── Đọc tenant slug từ URL hash ──────────────────────────────────────────
+// ─── Helpers ──────────────────────────────────────────────────────────────────
 function getTenant() {
   if (typeof window === 'undefined') return null;
   const hash = window.location.hash.replace('#', '').trim().toLowerCase();
   return /^[a-z0-9-]{1,50}$/.test(hash) ? hash : null;
 }
 
-// Mode per tenant: 'local' | 'cloud' — persisted in localStorage
 function getMode(tenant) {
   if (!tenant || typeof window === 'undefined') return null;
   return localStorage.getItem(`pcs_mode_${tenant}`) || null;
@@ -19,349 +18,66 @@ function setMode(tenant, mode) {
   localStorage.setItem(`pcs_mode_${tenant}`, mode);
 }
 
-// ─── Auth API helpers ──────────────────────────────────────────────────────
+function slugify(str) {
+  return str.toLowerCase()
+    .replace(/đ/g, 'd')
+    .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '')
+    .slice(0, 50);
+}
+
+// ─── API ──────────────────────────────────────────────────────────────────────
 async function validateToken() {
   const token = localStorage.getItem('pcs_token');
-  if (!token) return false;
+  if (!token) return null;
   try {
     const res = await fetch('https://auth.pcs.io.vn/auth/me', {
       headers: { Authorization: `Bearer ${token}` },
     });
-    if (!res.ok) {
-      localStorage.removeItem('pcs_token');
-      return false;
-    }
-    return true;
+    if (!res.ok) { localStorage.removeItem('pcs_token'); return null; }
+    const data = await res.json();
+    return data.tenant?.slug || null;
   } catch {
     localStorage.removeItem('pcs_token');
-    return false;
+    return null;
   }
 }
 
-async function apiLogin(email, password, tenantSlug) {
-  const body = { email, password };
-  if (tenantSlug) body.tenant_slug = tenantSlug;
+async function apiLogin(email, password) {
   const res = await fetch('https://auth.pcs.io.vn/auth/login', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(body),
+    body: JSON.stringify({ email: email.toLowerCase().trim(), password }),
   });
   const data = await res.json().catch(() => ({}));
-  if (!res.ok) throw new Error(data.error || data.message || `Lỗi ${res.status}`);
-  return data.token;
+  if (!res.ok) throw new Error(data.error || `Lỗi ${res.status}`);
+  return { token: data.token, tenantSlug: data.user?.tenant?.slug };
 }
 
-async function apiRegister(tenantSlug, tenantName, email, password) {
+async function apiRegister(companyName, email, password) {
+  const slug = slugify(companyName);
+  if (slug.length < 2) throw new Error('Tên công ty phải có ít nhất 2 ký tự');
   const res = await fetch('https://auth.pcs.io.vn/auth/register', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ tenant_slug: tenantSlug, tenant_name: tenantName, email, password }),
+    body: JSON.stringify({
+      tenant_slug: slug,
+      tenant_name: companyName.trim(),
+      email: email.toLowerCase().trim(),
+      password,
+    }),
   });
   const data = await res.json().catch(() => ({}));
-  if (!res.ok) throw new Error(data.error || data.message || `Lỗi ${res.status}`);
-  // register doesn't return token → auto login
-  return apiLogin(email, password, tenantSlug);
+  if (!res.ok) throw new Error(data.error || `Lỗi ${res.status}`);
+  return apiLogin(email, password);
 }
 
-// ─── Landing — 2 mode: dùng thử (local) hoặc đăng nhập (cloud) ───────────
-function Landing({ initialSlug = '', showAuthTab = null, onAuthSuccess }) {
-  const [slug, setSlug] = useState(initialSlug);
-  const ready = slug.trim().length > 0;
-
-  // Auth form state (only used when showAuthTab is active)
-  const [tab, setTab] = useState(showAuthTab || 'login');
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [tenantName, setTenantName] = useState('');
-  const [authError, setAuthError] = useState('');
-  const [submitting, setSubmitting] = useState(false);
-
-  // Forgot password state
-  const [resetEmail, setResetEmail] = useState('');
-  const [resetMessage, setResetMessage] = useState('');
-
-  const go = (mode) => {
-    const clean = slug.trim().toLowerCase().replace(/[^a-z0-9-]/g, '-');
-    if (!clean) return;
-    setMode(clean, mode);
-    window.location.hash = clean;
-  };
-
-  const handleSubmit = async () => {
-    setAuthError('');
-    setSubmitting(true);
-    const clean = slug.trim().toLowerCase().replace(/[^a-z0-9-]/g, '-');
-
-    // Validate slug length and format
-    if (!/^[a-z0-9-]{2,50}$/.test(clean)) {
-      setAuthError('Tên công ty phải có 2–50 ký tự, chỉ dùng chữ thường, số, gạch ngang');
-      setSubmitting(false);
-      return;
-    }
-
-    try {
-      let token;
-      if (tab === 'login') {
-        token = await apiLogin(email, password, clean || undefined);
-      } else {
-        if (!tenantName.trim()) {
-          setAuthError('Tên công ty không được trống');
-          setSubmitting(false);
-          return;
-        }
-        token = await apiRegister(clean, tenantName, email, password);
-      }
-      localStorage.setItem('pcs_token', token);
-      onAuthSuccess(token, clean);
-    } catch (e) {
-      setAuthError(e.message);
-    } finally {
-      setSubmitting(false);
-    }
-  };
-
-  const handleForgotPassword = async () => {
-    setResetMessage('');
-    setSubmitting(true);
-    try {
-      const res = await fetch('https://auth.pcs.io.vn/auth/forgot-password', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: resetEmail.toLowerCase().trim() }),
-      });
-      const data = await res.json().catch(() => ({}));
-      if (!res.ok) throw new Error(data.error || data.message || `Lỗi ${res.status}`);
-      setResetMessage('✓ Link đặt lại mật khẩu đã được gửi. Kiểm tra email của bạn.');
-      setResetEmail('');
-    } catch (e) {
-      setResetMessage(`✗ ${e.message}`);
-    } finally {
-      setSubmitting(false);
-    }
-  };
-
-  const inputStyle = {
-    flex: 1,
-    padding: '10px 14px',
-    borderRadius: 8,
-    border: '1px solid var(--ifm-color-emphasis-300)',
-    background: 'var(--ifm-background-surface-color)',
-    color: 'var(--ifm-font-color-base)',
-    fontFamily: 'inherit',
-    fontSize: 14,
-  };
-
-  const btnBase = {
-    padding: '10px 18px',
-    borderRadius: 8,
-    border: 'none',
-    fontFamily: 'inherit',
-    fontWeight: 700,
-    fontSize: 14,
-    cursor: ready ? 'pointer' : 'default',
-    transition: 'all 0.15s',
-    whiteSpace: 'nowrap',
-  };
-
-  return (
-    <div style={{
-      minHeight: '60vh',
-      display: 'flex',
-      flexDirection: 'column',
-      alignItems: 'center',
-      justifyContent: 'center',
-      gap: 24,
-      padding: '48px 24px',
-      fontFamily: "'IBM Plex Mono', monospace",
-    }}>
-      <div style={{ textAlign: 'center', maxWidth: 480 }}>
-        <div style={{ fontSize: 13, opacity: 0.5, letterSpacing: 3, textTransform: 'uppercase', marginBottom: 12 }}>
-          PCS Compliance
-        </div>
-        <h1 style={{ fontSize: 28, fontWeight: 700, marginBottom: 12 }}>
-          Tự đánh giá tuân thủ ISO 27001 / 42001
-        </h1>
-        <p style={{ opacity: 0.6, fontSize: 14, lineHeight: 1.7, marginBottom: 0 }}>
-          Nhập tên công ty để tạo dashboard riêng cho tổ chức của bạn.
-        </p>
-      </div>
-
-      {/* Input or Auth panel header */}
-      {!showAuthTab ? (
-        <div style={{ display: 'flex', gap: 10, width: '100%', maxWidth: 420 }}>
-          <input
-            value={slug}
-            onChange={e => setSlug(e.target.value)}
-            onKeyDown={e => e.key === 'Enter' && ready && go('local')}
-            placeholder="tên-công-ty (ví dụ: pcs-vietnam)"
-            style={inputStyle}
-            autoFocus
-          />
-        </div>
-      ) : (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 6, width: '100%', maxWidth: 420 }}>
-          <label style={{ fontSize: 12, fontWeight: 600, opacity: 0.7 }}>Slug công ty</label>
-          <input
-            value={slug}
-            onChange={e => setSlug(e.target.value)}
-            placeholder="vi-du-abc"
-            style={inputStyle}
-          />
-          <div style={{ fontSize: 11, opacity: 0.5 }}>(dùng để phân biệt tenant, min 2 ký tự, chỉ chữ thường/số/gạch ngang)</div>
-        </div>
-      )}
-
-      {/* 2 CTA buttons or Auth panel */}
-      {!showAuthTab && (
-        <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', justifyContent: 'center', width: '100%', maxWidth: 420 }}>
-          <button
-            onClick={() => go('local')}
-            disabled={!ready}
-            title="Dữ liệu lưu trên trình duyệt, không cần tài khoản"
-            style={{
-              ...btnBase,
-              flex: 1,
-              background: ready ? 'var(--ifm-color-emphasis-200)' : 'var(--ifm-color-emphasis-100)',
-              color: ready ? 'var(--ifm-font-color-base)' : 'var(--ifm-color-emphasis-400)',
-              border: '1px solid var(--ifm-color-emphasis-300)',
-            }}
-          >
-            Dùng thử — lưu local
-          </button>
-          <button
-            onClick={() => go('cloud')}
-            disabled={!ready}
-            title="Đăng nhập để lưu dữ liệu lên cloud, truy cập từ nhiều thiết bị"
-            style={{
-              ...btnBase,
-              flex: 1,
-              background: ready ? 'var(--ifm-color-primary)' : 'var(--ifm-color-emphasis-200)',
-              color: ready ? '#fff' : 'var(--ifm-color-emphasis-500)',
-            }}
-          >
-            Đăng nhập — cloud sync ☁
-          </button>
-        </div>
-      )}
-
-      {/* Auth panel */}
-      {showAuthTab && (
-        <div style={{ width: '100%', maxWidth: 420 }}>
-          {/* Tab row */}
-          <div style={{ display: 'flex', borderBottom: '1px solid var(--ifm-color-emphasis-300)', marginBottom: 20 }}>
-            {['login', 'register', 'forgot'].map(t => (
-              <button key={t} onClick={() => setTab(t)} style={{
-                flex: 1, padding: '8px 0', background: 'none', border: 'none',
-                cursor: 'pointer', fontFamily: 'inherit', fontSize: 12, fontWeight: tab === t ? 700 : 400,
-                borderBottom: tab === t ? '2px solid var(--ifm-color-primary)' : '2px solid transparent',
-                color: tab === t ? 'var(--ifm-color-primary)' : 'inherit', marginBottom: -1,
-              }}>
-                {t === 'login' ? 'Đăng nhập' : t === 'register' ? 'Đăng ký' : 'Quên mật khẩu'}
-              </button>
-            ))}
-          </div>
-
-          {/* Form fields */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-            {tab === 'register' && (
-              <input
-                value={tenantName}
-                onChange={e => setTenantName(e.target.value)}
-                placeholder="Tên công ty (ví dụ: PCS Vietnam)"
-                style={inputStyle}
-              />
-            )}
-
-            {tab !== 'forgot' && (
-              <input
-                value={email}
-                onChange={e => setEmail(e.target.value)}
-                placeholder="Email"
-                type="email"
-                style={inputStyle}
-              />
-            )}
-
-            {tab !== 'forgot' && (
-              <input
-                value={password}
-                onChange={e => setPassword(e.target.value)}
-                placeholder="Mật khẩu (tối thiểu 8 ký tự)"
-                type="password"
-                style={inputStyle}
-                onKeyDown={e => e.key === 'Enter' && !submitting && handleSubmit()}
-              />
-            )}
-
-            {tab === 'forgot' && (
-              <>
-                <input
-                  value={resetEmail}
-                  onChange={e => setResetEmail(e.target.value)}
-                  placeholder="Email tài khoản"
-                  type="email"
-                  style={inputStyle}
-                  onKeyDown={e => e.key === 'Enter' && !submitting && handleForgotPassword()}
-                />
-                <div style={{ fontSize: 12, opacity: 0.6, lineHeight: 1.5 }}>
-                  Nhập email tài khoản của bạn. Chúng tôi sẽ gửi link đặt lại mật khẩu.
-                </div>
-              </>
-            )}
-
-            {authError && (
-              <div style={{ background: '#fee2e2', color: '#991b1b', padding: '8px 12px', borderRadius: 6, fontSize: 13 }}>
-                {authError}
-              </div>
-            )}
-
-            {resetMessage && (
-              <div style={{
-                background: resetMessage.includes('✓') ? '#dcfce7' : '#fee2e2',
-                color: resetMessage.includes('✓') ? '#166534' : '#991b1b',
-                padding: '8px 12px', borderRadius: 6, fontSize: 13
-              }}>
-                {resetMessage}
-              </div>
-            )}
-
-            <button onClick={tab === 'forgot' ? handleForgotPassword : handleSubmit} disabled={submitting} style={{
-              ...btnBase, background: 'var(--ifm-color-primary)', color: '#fff',
-              cursor: submitting ? 'default' : 'pointer', opacity: submitting ? 0.7 : 1,
-              width: '100%',
-            }}>
-              {submitting ? 'Đang xử lý...' : (
-                tab === 'forgot' ? 'Gửi link đặt lại' : (tab === 'login' ? 'Đăng nhập' : 'Tạo tài khoản')
-              )}
-            </button>
-
-            <div onClick={() => onAuthSuccess(null, null)} style={{
-              fontSize: 12, opacity: 0.5, cursor: 'pointer', textAlign: 'center', textDecoration: 'underline',
-            }}>
-              ← Quay lại
-            </div>
-          </div>
-        </div>
-      )}
-
-      <div style={{ display: 'flex', gap: 32, fontSize: 11, opacity: 0.4, textAlign: 'center', flexWrap: 'wrap', justifyContent: 'center' }}>
-        <span>Local: không cần tài khoản, data trên máy này</span>
-        <span>Cloud: cần đăng nhập, sync nhiều thiết bị</span>
-      </div>
-
-      <div style={{ fontSize: 12, opacity: 0.35, textAlign: 'center' }}>
-        URL: <code>pcs.io.vn/c#{slug || 'ten-cong-ty'}</code>
-      </div>
-    </div>
-  );
-}
-
-// ─── OAuth callback handler ────────────────────────────────────────────────
+// ─── OAuth callback ────────────────────────────────────────────────────────────
 async function handleOAuthCallback() {
   const params = new URLSearchParams(window.location.search);
   const code = params.get('code');
   if (!code) return false;
-
   try {
     const response = await fetch('https://auth.pcs.io.vn/oauth/token', {
       method: 'POST',
@@ -374,48 +90,313 @@ async function handleOAuthCallback() {
         redirect_uri: window.location.origin + window.location.pathname,
       }),
     });
-
     if (!response.ok) return false;
-
     const data = await response.json();
     if (data.access_token) {
       localStorage.setItem('pcs_token', data.access_token);
       window.history.replaceState({}, '', window.location.pathname + window.location.hash);
       return true;
     }
-  } catch (err) {
-    console.error('OAuth callback error:', err);
-  }
-
+  } catch {}
   return false;
 }
 
-// ─── App wrapper ───────────────────────────────────────────────────────────
+// ─── Landing — 2 panels ───────────────────────────────────────────────────────
+function Landing({ onLocalStart, onAuthSuccess }) {
+  const [localName, setLocalName] = useState('');
+  const [tab, setTab] = useState('login');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [companyName, setCompanyName] = useState('');
+  const [error, setError] = useState('');
+  const [submitting, setSubmitting] = useState(false);
+  const [resetEmail, setResetEmail] = useState('');
+  const [resetMsg, setResetMsg] = useState('');
+
+  const localSlug = slugify(localName);
+  const localReady = localSlug.length >= 2;
+
+  const handleLocalStart = () => {
+    if (!localReady) return;
+    setMode(localSlug, 'local');
+    window.location.hash = localSlug;
+    onLocalStart(localSlug);
+  };
+
+  const handleCloudSubmit = async () => {
+    setError('');
+    setSubmitting(true);
+    try {
+      if (tab === 'register') {
+        if (!companyName.trim()) throw new Error('Tên công ty không được trống');
+        if (!email.includes('@')) throw new Error('Email không hợp lệ');
+        if (password.length < 8) throw new Error('Mật khẩu tối thiểu 8 ký tự');
+        const { token, tenantSlug } = await apiRegister(companyName, email, password);
+        localStorage.setItem('pcs_token', token);
+        onAuthSuccess(token, tenantSlug);
+      } else {
+        if (!email.includes('@')) throw new Error('Email không hợp lệ');
+        if (!password) throw new Error('Nhập mật khẩu');
+        const { token, tenantSlug } = await apiLogin(email, password);
+        localStorage.setItem('pcs_token', token);
+        onAuthSuccess(token, tenantSlug);
+      }
+    } catch (e) {
+      setError(e.message);
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const handleForgotPassword = async () => {
+    setResetMsg('');
+    setSubmitting(true);
+    try {
+      const res = await fetch('https://auth.pcs.io.vn/auth/forgot-password', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: resetEmail.toLowerCase().trim() }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data.error || `Lỗi ${res.status}`);
+      setResetMsg('✓ Link đặt lại đã gửi. Kiểm tra email của bạn.');
+    } catch (e) {
+      setResetMsg(`✗ ${e.message}`);
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const inp = {
+    width: '100%',
+    padding: '10px 14px',
+    borderRadius: 8,
+    border: '1px solid var(--ifm-color-emphasis-300)',
+    background: 'var(--ifm-background-surface-color)',
+    color: 'var(--ifm-font-color-base)',
+    fontFamily: 'inherit',
+    fontSize: 14,
+    boxSizing: 'border-box',
+  };
+
+  return (
+    <div style={{
+      minHeight: '80vh',
+      display: 'flex',
+      flexDirection: 'column',
+      alignItems: 'center',
+      justifyContent: 'center',
+      gap: 32,
+      padding: '48px 24px',
+      fontFamily: "'IBM Plex Mono', monospace",
+    }}>
+      {/* Header */}
+      <div style={{ textAlign: 'center', maxWidth: 580 }}>
+        <div style={{ fontSize: 12, opacity: 0.45, letterSpacing: 3, textTransform: 'uppercase', marginBottom: 10 }}>
+          PCS Platform
+        </div>
+        <h1 style={{ fontSize: 26, fontWeight: 700, marginBottom: 10 }}>
+          Compliance & Quản lý ISO
+        </h1>
+        <p style={{ opacity: 0.55, fontSize: 14, lineHeight: 1.7, marginBottom: 0 }}>
+          Tự đánh giá tuân thủ ISO 27001 / 42001. Dùng thử ngay không cần tài khoản,
+          hoặc đăng nhập để sync dữ liệu nhiều thiết bị.
+        </p>
+      </div>
+
+      {/* Two panels */}
+      <div style={{ display: 'flex', gap: 20, width: '100%', maxWidth: 800, flexWrap: 'wrap', alignItems: 'stretch' }}>
+
+        {/* ── Local panel ── */}
+        <div style={{
+          flex: 1, minWidth: 280,
+          border: '1px solid var(--ifm-color-emphasis-300)',
+          borderRadius: 12, padding: 24,
+          display: 'flex', flexDirection: 'column', gap: 16,
+        }}>
+          <div>
+            <div style={{ fontWeight: 700, fontSize: 15, marginBottom: 6 }}>💾 Dùng thử — Local</div>
+            <div style={{ fontSize: 12, opacity: 0.55, lineHeight: 1.6 }}>
+              Không cần tài khoản. Dữ liệu lưu trên trình duyệt này, không sync thiết bị khác.
+            </div>
+          </div>
+
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 8, flex: 1 }}>
+            <input
+              value={localName}
+              onChange={e => setLocalName(e.target.value)}
+              onKeyDown={e => e.key === 'Enter' && localReady && handleLocalStart()}
+              placeholder="Tên công ty (ví dụ: PCS Vietnam)"
+              style={inp}
+              autoFocus
+            />
+            {localName && (
+              <div style={{ fontSize: 11, opacity: 0.4 }}>
+                URL: pcs.io.vn/c#{localSlug || '...'}
+              </div>
+            )}
+          </div>
+
+          <button
+            onClick={handleLocalStart}
+            disabled={!localReady}
+            style={{
+              width: '100%', padding: '10px 0', borderRadius: 8,
+              border: '1px solid var(--ifm-color-emphasis-300)',
+              background: localReady ? 'var(--ifm-color-emphasis-200)' : 'var(--ifm-color-emphasis-100)',
+              color: localReady ? 'var(--ifm-font-color-base)' : 'var(--ifm-color-emphasis-400)',
+              fontFamily: 'inherit', fontWeight: 700, fontSize: 14,
+              cursor: localReady ? 'pointer' : 'default',
+            }}
+          >
+            Bắt đầu →
+          </button>
+        </div>
+
+        {/* ── Cloud panel ── */}
+        <div style={{
+          flex: 1, minWidth: 280,
+          border: '2px solid var(--ifm-color-primary)',
+          borderRadius: 12, padding: 24,
+          display: 'flex', flexDirection: 'column', gap: 16,
+        }}>
+          <div>
+            <div style={{ fontWeight: 700, fontSize: 15, marginBottom: 6 }}>☁ Tài khoản PCS</div>
+            <div style={{ fontSize: 12, opacity: 0.55, lineHeight: 1.6 }}>
+              Sync nhiều thiết bị. Dùng được cho Compliance, khóa học và các dịch vụ PCS khác.
+            </div>
+          </div>
+
+          {/* Tabs */}
+          <div style={{ display: 'flex', borderBottom: '1px solid var(--ifm-color-emphasis-300)' }}>
+            {[['login', 'Đăng nhập'], ['register', 'Đăng ký'], ['forgot', 'Quên mật khẩu']].map(([t, label]) => (
+              <button key={t} onClick={() => { setTab(t); setError(''); setResetMsg(''); }} style={{
+                flex: 1, padding: '6px 0', background: 'none', border: 'none',
+                cursor: 'pointer', fontFamily: 'inherit', fontSize: 11,
+                fontWeight: tab === t ? 700 : 400,
+                borderBottom: tab === t ? '2px solid var(--ifm-color-primary)' : '2px solid transparent',
+                color: tab === t ? 'var(--ifm-color-primary)' : 'inherit', marginBottom: -1,
+              }}>
+                {label}
+              </button>
+            ))}
+          </div>
+
+          {/* Form fields */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 10, flex: 1 }}>
+            {tab === 'register' && (
+              <input
+                value={companyName}
+                onChange={e => setCompanyName(e.target.value)}
+                placeholder="Tên công ty (ví dụ: PCS Vietnam)"
+                style={inp}
+              />
+            )}
+
+            {tab !== 'forgot' ? (
+              <>
+                <input
+                  value={email}
+                  onChange={e => setEmail(e.target.value)}
+                  placeholder="Email"
+                  type="email"
+                  style={inp}
+                />
+                <input
+                  value={password}
+                  onChange={e => setPassword(e.target.value)}
+                  placeholder="Mật khẩu (tối thiểu 8 ký tự)"
+                  type="password"
+                  style={inp}
+                  onKeyDown={e => e.key === 'Enter' && !submitting && handleCloudSubmit()}
+                />
+              </>
+            ) : (
+              <>
+                <input
+                  value={resetEmail}
+                  onChange={e => setResetEmail(e.target.value)}
+                  placeholder="Email tài khoản"
+                  type="email"
+                  style={inp}
+                  onKeyDown={e => e.key === 'Enter' && !submitting && handleForgotPassword()}
+                />
+                <div style={{ fontSize: 12, opacity: 0.55, lineHeight: 1.5 }}>
+                  Chúng tôi sẽ gửi link đặt lại mật khẩu đến email của bạn.
+                </div>
+              </>
+            )}
+
+            {error && (
+              <div style={{ background: '#fee2e2', color: '#991b1b', padding: '8px 12px', borderRadius: 6, fontSize: 13 }}>
+                {error}
+              </div>
+            )}
+            {resetMsg && (
+              <div style={{
+                background: resetMsg.includes('✓') ? '#dcfce7' : '#fee2e2',
+                color: resetMsg.includes('✓') ? '#166534' : '#991b1b',
+                padding: '8px 12px', borderRadius: 6, fontSize: 13,
+              }}>
+                {resetMsg}
+              </div>
+            )}
+
+            <button
+              onClick={tab === 'forgot' ? handleForgotPassword : handleCloudSubmit}
+              disabled={submitting}
+              style={{
+                width: '100%', padding: '10px 0', borderRadius: 8, border: 'none',
+                background: 'var(--ifm-color-primary)', color: '#fff',
+                fontFamily: 'inherit', fontWeight: 700, fontSize: 14,
+                cursor: submitting ? 'default' : 'pointer', opacity: submitting ? 0.7 : 1,
+              }}
+            >
+              {submitting ? 'Đang xử lý...' : tab === 'forgot' ? 'Gửi link đặt lại' : tab === 'login' ? 'Đăng nhập' : 'Tạo tài khoản'}
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div style={{ fontSize: 11, opacity: 0.35, textAlign: 'center' }}>
+        pcs.io.vn/c — PCS Vietnam Platform
+      </div>
+    </div>
+  );
+}
+
+// ─── App wrapper ───────────────────────────────────────────────────────────────
 function CompliancePageContent() {
-  const [tenant, setTenant] = useState(getTenant);
-  const [mode, setModeState] = useState(null);   // 'local' | 'cloud'
+  const [tenant, setTenant] = useState(null);
+  const [mode, setModeState] = useState(null);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [loading, setLoading] = useState(true);
-  const [authView, setAuthView] = useState(null); // 'login' | 'register' | null
+  const [showLanding, setShowLanding] = useState(false);
+
+  const handleLocalStart = (slug) => {
+    setTenant(slug);
+    setModeState('local');
+    setIsAuthenticated(true);
+    setShowLanding(false);
+  };
 
   const handleAuthSuccess = (token, tenantSlug) => {
-    if (!token) {
-      // User clicked "back" → clear mode, show fresh landing
-      if (tenant) localStorage.removeItem(`pcs_mode_${tenant}`);
-      setModeState(null);
-      setAuthView(null);
-      return;
+    const t = tenantSlug || getTenant();
+    if (t) {
+      setMode(t, 'cloud');
+      window.location.hash = t;
+      setTenant(t);
     }
-    const t = tenantSlug || tenant;
-    setMode(t, 'cloud');
-    if (t !== tenant) window.location.hash = t;
     setModeState('cloud');
     setIsAuthenticated(true);
-    setAuthView(null);
+    setShowLanding(false);
   };
 
   useEffect(() => {
-    const onHash = () => setTenant(getTenant());
+    const onHash = () => {
+      const t = getTenant();
+      if (t) setTenant(t);
+    };
     window.addEventListener('hashchange', onHash);
     return () => window.removeEventListener('hashchange', onHash);
   }, []);
@@ -424,54 +405,54 @@ function CompliancePageContent() {
     (async () => {
       setLoading(true);
 
-      // Handle OAuth callback (cloud mode returning from auth.pcs.io.vn)
-      const logged = await handleOAuthCallback();
-      if (logged) {
-        if (tenant) setMode(tenant, 'cloud');
-        setModeState('cloud');
-        setIsAuthenticated(true);
-        setLoading(false);
-        return;
-      }
-
-      if (!tenant) {
-        setLoading(false);
-        return;
-      }
-
-      const savedMode = getMode(tenant);
-      const token = localStorage.getItem('pcs_token');
-
-      if (token) {
-        // Already have JWT → validate it
-        const valid = await validateToken();
-        if (valid) {
+      // Handle OAuth callback
+      const oauthLogged = await handleOAuthCallback();
+      if (oauthLogged) {
+        const slug = await validateToken();
+        if (slug) {
+          setMode(slug, 'cloud');
+          window.location.hash = slug;
+          setTenant(slug);
           setModeState('cloud');
           setIsAuthenticated(true);
-        } else {
-          // Token expired/invalid → show login form
-          setAuthView('login');
+        }
+        setLoading(false);
+        return;
+      }
+
+      // Check existing token
+      const token = localStorage.getItem('pcs_token');
+      if (token) {
+        const slug = await validateToken();
+        if (slug) {
+          setMode(slug, 'cloud');
+          window.location.hash = slug;
+          setTenant(slug);
+          setModeState('cloud');
+          setIsAuthenticated(true);
           setLoading(false);
           return;
         }
-      } else if (savedMode === 'cloud') {
-        // Cloud mode, no token → show inline login instead of OAuth redirect
-        setAuthView('login');
-        setLoading(false);
-        return;
-      } else if (savedMode === 'local') {
-        // Local mode — no auth needed
-        setModeState('local');
-        setIsAuthenticated(true);
-      } else {
-        // No mode chosen yet → back to landing (show landing for this tenant too)
-        setLoading(false);
-        return;
       }
 
+      // Check saved local mode from URL hash
+      const currentTenant = getTenant();
+      if (currentTenant) {
+        const savedMode = getMode(currentTenant);
+        if (savedMode === 'local') {
+          setTenant(currentTenant);
+          setModeState('local');
+          setIsAuthenticated(true);
+          setLoading(false);
+          return;
+        }
+      }
+
+      // Nothing matched → show landing
+      setShowLanding(true);
       setLoading(false);
     })();
-  }, [tenant]);
+  }, []);
 
   if (loading) {
     return (
@@ -481,32 +462,25 @@ function CompliancePageContent() {
     );
   }
 
-  // No tenant, no mode, or auth form showing → Landing
-  if (!tenant || !getMode(tenant) || authView) {
-    return (
-      <Landing
-        initialSlug={tenant || ''}
-        showAuthTab={authView}
-        onAuthSuccess={handleAuthSuccess}
-      />
-    );
-  }
-
-  if (!isAuthenticated) {
-    return (
-      <div style={{ padding: 48, textAlign: 'center', opacity: 0.7, fontFamily: 'monospace' }}>
-        Đang tải...
-      </div>
-    );
+  if (showLanding || !isAuthenticated) {
+    return <Landing onLocalStart={handleLocalStart} onAuthSuccess={handleAuthSuccess} />;
   }
 
   const handleLogout = () => {
-    if (window.confirm('Bạn muốn đăng xuất?')) {
-      localStorage.removeItem('pcs_token');
-      localStorage.removeItem(`pcs_mode_${tenant}`);
-      window.location.hash = '';
-      window.location.reload();
-    }
+    if (!window.confirm('Bạn muốn đăng xuất?')) return;
+    localStorage.removeItem('pcs_token');
+    if (tenant) localStorage.removeItem(`pcs_mode_${tenant}`);
+    window.location.hash = '';
+    window.location.reload();
+  };
+
+  const handleSwitchCompany = () => {
+    if (tenant) localStorage.removeItem(`pcs_mode_${tenant}`);
+    window.location.hash = '';
+    setShowLanding(true);
+    setIsAuthenticated(false);
+    setModeState(null);
+    setTenant(null);
   };
 
   const ComplianceApp = React.lazy(() => import('../components/ComplianceApp'));
@@ -518,35 +492,38 @@ function CompliancePageContent() {
       </div>
     }>
       <div style={{ position: 'relative' }}>
-        <button
-          onClick={handleLogout}
-          style={{
-            position: 'fixed',
-            top: 16,
-            right: 16,
-            padding: '8px 14px',
-            fontSize: 12,
-            fontWeight: 700,
-            border: 'none',
-            borderRadius: 6,
-            background: '#EF4444',
-            color: 'white',
-            cursor: 'pointer',
-            zIndex: 1000,
-            transition: 'all 0.2s',
-          }}
-          onMouseEnter={e => e.target.style.background = '#DC2626'}
-          onMouseLeave={e => e.target.style.background = '#EF4444'}
-        >
-          Đăng xuất
-        </button>
+        {mode === 'cloud' ? (
+          <button
+            onClick={handleLogout}
+            style={{
+              position: 'fixed', top: 16, right: 16, padding: '8px 14px',
+              fontSize: 12, fontWeight: 700, border: 'none', borderRadius: 6,
+              background: '#EF4444', color: 'white', cursor: 'pointer', zIndex: 1000,
+            }}
+          >
+            Đăng xuất
+          </button>
+        ) : (
+          <button
+            onClick={handleSwitchCompany}
+            style={{
+              position: 'fixed', top: 16, right: 16, padding: '8px 14px',
+              fontSize: 12, fontWeight: 700, borderRadius: 6,
+              border: '1px solid var(--ifm-color-emphasis-300)',
+              background: 'var(--ifm-background-surface-color)',
+              color: 'var(--ifm-font-color-base)', cursor: 'pointer', zIndex: 1000,
+            }}
+          >
+            Đổi công ty
+          </button>
+        )}
         <ComplianceApp tenant={tenant} mode={mode} />
       </div>
     </React.Suspense>
   );
 }
 
-// ─── Docusaurus page export ────────────────────────────────────────────────
+// ─── Docusaurus page export ────────────────────────────────────────────────────
 export default function CompliancePage() {
   return (
     <Layout
