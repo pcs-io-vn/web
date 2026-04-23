@@ -1,1 +1,5 @@
 push_context.py
+
+# Claude Code config
+.claude/
+blog/.claude/
