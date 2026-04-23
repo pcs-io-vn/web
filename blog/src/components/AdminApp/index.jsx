@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from 'react';
-import Overview  from './Overview';
-import UsersTab  from './UsersTab';
-import { getMe } from './api';
+import Overview      from './Overview';
+import UsersTab      from './UsersTab';
+import SuperAdminApp from '@site/src/components/SuperAdminApp';
+import { getMe }     from './api';
 
 const tabBtn = (active) => ({
   padding: '8px 16px',
@@ -15,14 +16,16 @@ const tabBtn = (active) => ({
 });
 
 export default function AdminApp({ tenant, onLogout, onSwitchCompany }) {
-  const [tab, setTab] = useState('users');
-  const [me, setMe] = useState(null);
+  const [tab,       setTab]       = useState('users');
+  const [me,        setMe]        = useState(null);
   const [forbidden, setForbidden] = useState(false);
-  const [error, setError] = useState('');
+  const [error,     setError]     = useState('');
 
   useEffect(() => {
     getMe().then((data) => {
-      if (data.user?.role !== 'admin') {
+      const role = data.user?.role;
+      // superadmin và admin đều được vào — forbidden chỉ khi role khác hẳn
+      if (role !== 'admin' && role !== 'superadmin') {
         setForbidden(true);
       } else {
         setMe(data);
@@ -43,6 +46,12 @@ export default function AdminApp({ tenant, onLogout, onSwitchCompany }) {
   if (error) return <div style={{ padding: 24, color: '#b91c1c' }}>Lỗi: {error}</div>;
   if (!me)   return <div style={{ padding: 24, color: '#6b7280' }}>Đang xác thực…</div>;
 
+  // Superadmin → render SuperAdminApp (cross-tenant view)
+  if (me.user?.role === 'superadmin') {
+    return <SuperAdminApp onLogout={onLogout} />;
+  }
+
+  // Tenant Admin → tenant-scoped view (như cũ)
   return (
     <div style={{ maxWidth: 1100, margin: '0 auto', padding: '24px 32px' }}>
       <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
@@ -67,7 +76,7 @@ export default function AdminApp({ tenant, onLogout, onSwitchCompany }) {
       <Overview />
 
       <div style={{ display: 'flex', gap: 8, marginBottom: 16 }}>
-        <button style={tabBtn(tab === 'users')}    onClick={() => setTab('users')}>Users</button>
+        <button style={tabBtn(tab === 'users')} onClick={() => setTab('users')}>Users</button>
       </div>
 
       {tab === 'users' && <UsersTab currentUserId={me.user?.id} />}
