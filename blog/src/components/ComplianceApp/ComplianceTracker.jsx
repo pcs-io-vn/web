@@ -528,6 +528,82 @@ function Dashboard({ config, controlStatus: externalStatus, setControlStatus: ex
 
   const setStatus = (id, status) => setControlStatus(s => ({...s, [id]: status}));
 
+  const [showExport, setShowExport] = useState(false);
+
+  const exportCSV = () => {
+    const STATUS_LABEL = { done:"Hoàn thành", partial:"Một phần", notdone:"Chưa làm", na:"N/A" };
+    const rows = [
+      ["Control ID","Framework","Tên","Trạng thái","Độ khó","Mô tả"],
+      ...relevantControls.map(c => [
+        c.id, "ISO 27001:2022", c.title,
+        STATUS_LABEL[controlStatus[c.id]] || "Chưa làm",
+        EFFORT_META[c.effort]?.label || c.effort, c.desc,
+      ]),
+      ...(config.frameworks.includes("iso42001") ? relevantAI.map(c => [
+        c.id, "ISO 42001:2023", c.title,
+        STATUS_LABEL[controlStatus[c.id]] || "Chưa làm",
+        EFFORT_META[c.effort]?.label || c.effort, c.desc,
+      ]) : []),
+    ];
+    const csv = rows.map(r => r.map(v => `"${String(v).replace(/"/g,'""')}"`).join(",")).join("\n");
+    const blob = new Blob(["\uFEFF" + csv], { type:"text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url; a.download = `compliance-${config.companyName}-${new Date().toISOString().slice(0,10)}.csv`;
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    setShowExport(false);
+  };
+
+  const exportPDF = () => {
+    const STATUS_COLOR = { done:"#10B981", partial:"#F59E0B", notdone:"#EF4444", na:"#64748B" };
+    const STATUS_LABEL = { done:"✅ Hoàn thành", partial:"⚠ Một phần", notdone:"❌ Chưa làm", na:"⊘ N/A" };
+    const allControls = [
+      ...relevantControls.map(c => ({...c, fw:"ISO 27001:2022"})),
+      ...(config.frameworks.includes("iso42001") ? relevantAI.map(c => ({...c, fw:"ISO 42001:2023"})) : []),
+    ];
+    const rows = allControls.map(c => {
+      const st = controlStatus[c.id] || "notdone";
+      return `<tr>
+        <td>${c.id}</td><td>${c.fw}</td><td>${c.title}</td>
+        <td style="color:${STATUS_COLOR[st]};font-weight:600">${STATUS_LABEL[st]}</td>
+        <td>${EFFORT_META[c.effort]?.label || c.effort}</td>
+      </tr>`;
+    }).join("");
+    const done = allControls.filter(c => controlStatus[c.id]==="done").length;
+    const total = allControls.length;
+    const html = `<!DOCTYPE html><html><head><meta charset="utf-8">
+      <title>Compliance Report — ${config.companyName}</title>
+      <style>
+        body { font-family: sans-serif; font-size: 11px; color: #111; margin: 32px; }
+        h1 { font-size: 18px; margin-bottom: 4px; }
+        .meta { color: #666; margin-bottom: 20px; font-size: 12px; }
+        .summary { display: flex; gap: 24px; margin-bottom: 24px; }
+        .card { border: 1px solid #ddd; border-radius: 8px; padding: 12px 20px; }
+        .card-val { font-size: 28px; font-weight: 700; }
+        .card-label { font-size: 11px; color: #666; }
+        table { width: 100%; border-collapse: collapse; }
+        th { background: #f5f5f5; text-align: left; padding: 8px 10px; border-bottom: 2px solid #ddd; font-size: 11px; }
+        td { padding: 7px 10px; border-bottom: 1px solid #eee; vertical-align: top; }
+        tr:hover td { background: #fafafa; }
+        @media print { body { margin: 16px; } }
+      </style></head><body>
+      <h1>Báo cáo Tuân thủ</h1>
+      <div class="meta">${config.companyName} · ${new Date().toLocaleDateString('vi-VN')} · ${done}/${total} controls hoàn thành</div>
+      <div class="summary">
+        <div class="card"><div class="card-val">${done}</div><div class="card-label">Đã hoàn thành</div></div>
+        <div class="card"><div class="card-val">${allControls.filter(c=>controlStatus[c.id]==="partial").length}</div><div class="card-label">Một phần</div></div>
+        <div class="card"><div class="card-val">${total - done}</div><div class="card-label">Chưa làm</div></div>
+        <div class="card"><div class="card-val">${Math.round(done/total*100)}%</div><div class="card-label">Tổng tiến độ</div></div>
+      </div>
+      <table><thead><tr><th>ID</th><th>Framework</th><th>Tên control</th><th>Trạng thái</th><th>Độ khó</th></tr></thead>
+      <tbody>${rows}</tbody></table>
+      <script>window.onload=()=>window.print();</script></body></html>`;
+    const win = window.open("", "_blank");
+    win.document.write(html); win.document.close();
+    setShowExport(false);
+  };
+
   const STATUS_OPTS = [
     { id:"done",    label:"✅ Đã làm",     color:"#10B981", bg:"#10B98120" },
     { id:"partial", label:"⚠ Một phần",   color:"#F59E0B", bg:"#F59E0B20" },
@@ -602,6 +678,32 @@ function Dashboard({ config, controlStatus: externalStatus, setControlStatus: ex
               cursor:"pointer", fontFamily:font, fontSize:10, marginLeft:8,
             }} title="Xoá data tenant này">⊗ Reset</button>
           )}
+          {/* Export dropdown */}
+          <div style={{ position:"relative", marginLeft:4 }}>
+            <button onClick={() => setShowExport(s => !s)} style={{
+              background:"none", border:`1px solid ${S.cardBorder}`, color:S.muted,
+              borderRadius:8, padding:"5px 12px", cursor:"pointer", fontFamily:font, fontSize:11,
+            }}>↓ Export</button>
+            {showExport && (
+              <div style={{
+                position:"absolute", right:0, top:"calc(100% + 6px)", zIndex:100,
+                background:"#0D1420", border:`1px solid ${S.cardBorder}`,
+                borderRadius:8, overflow:"hidden", minWidth:160,
+                boxShadow:"0 8px 32px rgba(0,0,0,0.4)",
+              }}>
+                <button onClick={exportCSV} style={{
+                  display:"block", width:"100%", textAlign:"left", padding:"10px 16px",
+                  background:"none", border:"none", color:S.text, fontFamily:font, fontSize:11,
+                  cursor:"pointer",
+                }}>📊 Excel / CSV</button>
+                <button onClick={exportPDF} style={{
+                  display:"block", width:"100%", textAlign:"left", padding:"10px 16px",
+                  background:"none", border:"none", color:S.text, fontFamily:font, fontSize:11,
+                  cursor:"pointer", borderTop:`1px solid ${S.faint}`,
+                }}>🖨 In / PDF</button>
+              </div>
+            )}
+          </div>
           {onLogout && (
             <button onClick={onLogout} style={{
               background:"rgba(239,68,68,0.12)", border:"1px solid rgba(239,68,68,0.4)",
