@@ -237,6 +237,22 @@ export async function deleteEvidence(id) {
 }
 
 /**
+ * POST /compliance/evidence/link — save external link as evidence
+ */
+export async function addEvidenceLink(control_id, evidence_url, label = '', framework = 'iso27001', notes = '') {
+  const response = await fetch(`${API_BASE}/evidence/link`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getAuthHeader() },
+    body: JSON.stringify({ control_id, evidence_url, label, framework, notes }),
+  });
+  if (!response.ok) {
+    const text = await response.text();
+    throw new Error(text || `Add link failed: ${response.status}`);
+  }
+  return await response.json();
+}
+
+/**
  * GET /compliance/evidence/:id/download — fetch and trigger browser download
  */
 export async function downloadEvidence(id, fileName) {

@@ -1,5 +1,5 @@
 import { useState, useMemo, useEffect, useCallback, useRef } from "react";
-import { getEvidence, uploadEvidence, deleteEvidence, downloadEvidence } from './api.js';
+import { getEvidence, uploadEvidence, deleteEvidence, downloadEvidence, addEvidenceLink } from './api.js';
 
 // ═══════════════════════════════════════════════════════════════════════════
 // DATA — ISO 27001:2022 Controls (Annex A — 93 controls, 4 themes)
@@ -164,8 +164,12 @@ const font = "'IBM Plex Mono', 'Fira Code', monospace";
 // ═══════════════════════════════════════════════════════════════════════════
 // EVIDENCE PANEL — file upload/list per control
 // ═══════════════════════════════════════════════════════════════════════════
-function EvidencePanel({ controlId, framework, evidence, loading, uploading, notes, onNotesChange, onUpload, onDelete, onDownload }) {
+function EvidencePanel({ controlId, framework, evidence, loading, uploading, notes, onNotesChange, onUpload, onDelete, onDownload, onAddLink }) {
   const fileRef = useRef(null);
+  const [mode, setMode] = useState('file'); // 'file' | 'link'
+  const [linkUrl, setLinkUrl] = useState('');
+  const [linkLabel, setLinkLabel] = useState('');
+  const [linkNotes, setLinkNotes] = useState('');
   const list = evidence || [];
 
   const fmtSize = (bytes) => {
@@ -174,72 +178,127 @@ function EvidencePanel({ controlId, framework, evidence, loading, uploading, not
     if (bytes < 1024*1024) return `${(bytes/1024).toFixed(0)}KB`;
     return `${(bytes/1024/1024).toFixed(1)}MB`;
   };
-
   const fmtDate = (str) => str ? str.slice(0,10) : '';
+
+  const handleLinkSubmit = async () => {
+    if (!linkUrl.trim()) return;
+    await onAddLink(linkUrl.trim(), linkLabel.trim(), linkNotes.trim());
+    setLinkUrl(''); setLinkLabel(''); setLinkNotes('');
+  };
+
+  const tabBtn = (id, label) => (
+    <button onClick={() => setMode(id)} style={{
+      background: mode === id ? S.faint : 'none',
+      border: `1px solid ${mode === id ? S.accent : S.cardBorder}`,
+      color: mode === id ? S.accent : S.muted,
+      borderRadius:6, padding:"3px 10px", cursor:"pointer", fontFamily:font, fontSize:9,
+    }}>{label}</button>
+  );
 
   return (
     <div style={{ marginTop:14, borderTop:`1px solid ${S.faint}`, paddingTop:12 }}>
-      <div style={{ display:"flex", alignItems:"center", gap:6, marginBottom:10 }}>
+      <div style={{ display:"flex", alignItems:"center", gap:8, marginBottom:10 }}>
         <span style={{ fontSize:10, color:S.accent, fontWeight:700, letterSpacing:1 }}>📎 EVIDENCE</span>
         {list.length > 0 && (
           <span style={{ fontSize:9, background:`${S.accent}20`, color:S.accent, padding:"1px 6px", borderRadius:10 }}>{list.length}</span>
         )}
       </div>
 
+      {/* Evidence list */}
       {loading && <div style={{ fontSize:10, color:S.muted, marginBottom:8 }}>Đang tải...</div>}
-
       {!loading && list.length === 0 && (
-        <div style={{ fontSize:10, color:S.muted, marginBottom:8 }}>Chưa có file evidence</div>
+        <div style={{ fontSize:10, color:S.muted, marginBottom:8 }}>Chưa có evidence</div>
       )}
+      {!loading && list.map(ev => {
+        const isLink = !!ev.evidence_url;
+        return (
+          <div key={ev.id} style={{
+            display:"flex", alignItems:"center", gap:8,
+            background:S.faint, borderRadius:6, padding:"6px 10px", marginBottom:4,
+          }}>
+            <span style={{ fontSize:11, flexShrink:0 }}>{isLink ? '🔗' : '📄'}</span>
+            <span style={{ fontSize:10, color:S.text, flex:1, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>
+              {ev.file_name}
+            </span>
+            {!isLink && <span style={{ fontSize:9, color:S.muted, flexShrink:0 }}>{fmtSize(ev.file_size)}</span>}
+            <span style={{ fontSize:9, color:S.muted, flexShrink:0 }}>{fmtDate(ev.uploaded_at)}</span>
+            {isLink ? (
+              <a href={ev.evidence_url} target="_blank" rel="noopener noreferrer" style={{
+                background:"none", border:`1px solid ${S.accent}50`, color:S.accent,
+                borderRadius:4, padding:"2px 7px", cursor:"pointer", fontFamily:font, fontSize:9,
+                textDecoration:"none",
+              }}>↗</a>
+            ) : (
+              <button onClick={() => onDownload(ev.id, ev.file_name)} style={{
+                background:"none", border:`1px solid ${S.accent}50`, color:S.accent,
+                borderRadius:4, padding:"2px 7px", cursor:"pointer", fontFamily:font, fontSize:9,
+              }}>↓</button>
+            )}
+            <button onClick={() => onDelete(ev.id)} style={{
+              background:"none", border:"1px solid rgba(239,68,68,0.3)", color:"rgba(239,68,68,0.7)",
+              borderRadius:4, padding:"2px 7px", cursor:"pointer", fontFamily:font, fontSize:9,
+            }}>✕</button>
+          </div>
+        );
+      })}
 
-      {!loading && list.map(ev => (
-        <div key={ev.id} style={{
-          display:"flex", alignItems:"center", gap:8,
-          background:S.faint, borderRadius:6, padding:"6px 10px", marginBottom:4,
-        }}>
-          <span style={{ fontSize:10, color:S.text, flex:1, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>
-            {ev.file_name}
-          </span>
-          <span style={{ fontSize:9, color:S.muted, flexShrink:0 }}>{fmtSize(ev.file_size)}</span>
-          <span style={{ fontSize:9, color:S.muted, flexShrink:0 }}>{fmtDate(ev.uploaded_at)}</span>
-          <button onClick={() => onDownload(ev.id, ev.file_name)} style={{
-            background:"none", border:`1px solid ${S.accent}50`, color:S.accent,
-            borderRadius:4, padding:"2px 7px", cursor:"pointer", fontFamily:font, fontSize:9,
-          }}>↓</button>
-          <button onClick={() => onDelete(ev.id)} style={{
-            background:"none", border:"1px solid rgba(239,68,68,0.3)", color:"rgba(239,68,68,0.7)",
-            borderRadius:4, padding:"2px 7px", cursor:"pointer", fontFamily:font, fontSize:9,
-          }}>✕</button>
-        </div>
-      ))}
+      {/* Mode tabs */}
+      <div style={{ display:"flex", gap:6, marginTop:10, marginBottom:8 }}>
+        {tabBtn('file', '📄 Upload file')}
+        {tabBtn('link', '🔗 Dán link')}
+      </div>
 
-      {/* Upload form */}
-      <div style={{ display:"flex", gap:6, alignItems:"center", marginTop:6, flexWrap:"wrap" }}>
-        <input ref={fileRef} type="file" accept="*/*" style={{ display:"none" }} />
-        <button onClick={() => fileRef.current?.click()} style={{
-          background:"none", border:`1px solid ${S.cardBorder}`, color:S.muted,
-          borderRadius:6, padding:"4px 10px", cursor:"pointer", fontFamily:font, fontSize:10,
-        }}>+ Chọn file</button>
-        <input
-          type="text" placeholder="Ghi chú (tuỳ chọn)" value={notes}
-          onChange={e => onNotesChange(e.target.value)}
-          style={{
-            flex:1, minWidth:100, background:S.card, border:`1px solid ${S.cardBorder}`,
-            borderRadius:6, padding:"4px 8px", color:S.text, fontFamily:font, fontSize:10, outline:"none",
-          }}
-        />
-        <button
-          onClick={() => onUpload(fileRef.current)}
-          disabled={uploading}
-          style={{
+      {/* File upload mode */}
+      {mode === 'file' && (
+        <div style={{ display:"flex", gap:6, alignItems:"center", flexWrap:"wrap" }}>
+          <input ref={fileRef} type="file"
+            accept=".pdf,.png,.jpg,.jpeg,.docx,.xlsx,application/pdf,image/png,image/jpeg,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+            style={{ display:"none" }} />
+          <button onClick={() => fileRef.current?.click()} style={{
+            background:"none", border:`1px solid ${S.cardBorder}`, color:S.muted,
+            borderRadius:6, padding:"4px 10px", cursor:"pointer", fontFamily:font, fontSize:10,
+          }}>+ Chọn file</button>
+          <span style={{ fontSize:9, color:S.muted }}>PDF · PNG · JPG · DOCX · XLSX · tối đa 10MB</span>
+          <input type="text" placeholder="Ghi chú (tuỳ chọn)" value={notes}
+            onChange={e => onNotesChange(e.target.value)}
+            style={{ flex:1, minWidth:80, background:S.card, border:`1px solid ${S.cardBorder}`, borderRadius:6, padding:"4px 8px", color:S.text, fontFamily:font, fontSize:10, outline:"none" }}
+          />
+          <button onClick={() => onUpload(fileRef.current)} disabled={uploading} style={{
             background: uploading ? S.faint : `${S.accent}20`,
             border:`1px solid ${uploading ? S.cardBorder : S.accent}`,
             color: uploading ? S.muted : S.accent,
             borderRadius:6, padding:"4px 10px", cursor: uploading ? "not-allowed" : "pointer",
             fontFamily:font, fontSize:10, fontWeight:600,
-          }}
-        >{uploading ? 'Đang upload...' : 'Upload'}</button>
-      </div>
+          }}>{uploading ? 'Đang upload...' : 'Upload'}</button>
+        </div>
+      )}
+
+      {/* Link mode */}
+      {mode === 'link' && (
+        <div style={{ display:"flex", flexDirection:"column", gap:6 }}>
+          <input type="url" placeholder="https://... (OneDrive, SharePoint, Google Drive...)"
+            value={linkUrl} onChange={e => setLinkUrl(e.target.value)}
+            style={{ background:S.card, border:`1px solid ${S.cardBorder}`, borderRadius:6, padding:"5px 10px", color:S.text, fontFamily:font, fontSize:10, outline:"none" }}
+          />
+          <div style={{ display:"flex", gap:6 }}>
+            <input type="text" placeholder="Tên hiển thị (tuỳ chọn)" value={linkLabel}
+              onChange={e => setLinkLabel(e.target.value)}
+              style={{ flex:1, background:S.card, border:`1px solid ${S.cardBorder}`, borderRadius:6, padding:"4px 8px", color:S.text, fontFamily:font, fontSize:10, outline:"none" }}
+            />
+            <input type="text" placeholder="Ghi chú (tuỳ chọn)" value={linkNotes}
+              onChange={e => setLinkNotes(e.target.value)}
+              style={{ flex:1, background:S.card, border:`1px solid ${S.cardBorder}`, borderRadius:6, padding:"4px 8px", color:S.text, fontFamily:font, fontSize:10, outline:"none" }}
+            />
+            <button onClick={handleLinkSubmit} disabled={uploading || !linkUrl.trim()} style={{
+              background: (!linkUrl.trim() || uploading) ? S.faint : `${S.accent}20`,
+              border:`1px solid ${(!linkUrl.trim() || uploading) ? S.cardBorder : S.accent}`,
+              color: (!linkUrl.trim() || uploading) ? S.muted : S.accent,
+              borderRadius:6, padding:"4px 12px", cursor: (!linkUrl.trim() || uploading) ? "not-allowed" : "pointer",
+              fontFamily:font, fontSize:10, fontWeight:600,
+            }}>{uploading ? 'Đang lưu...' : 'Lưu link'}</button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -472,6 +531,17 @@ function Dashboard({ config, controlStatus: externalStatus, setControlStatus: ex
       setUploadNotes(s => ({...s, [control_id]: ''}));
       await loadEvidence(control_id);
     } catch (e) { alert('Upload thất bại: ' + e.message); }
+    finally { setUploading(false); }
+  };
+
+  const handleAddLink = async (control_id, framework, url, label, notes) => {
+    if (!url) return;
+    setUploading(true);
+    try {
+      await addEvidenceLink(control_id, url, label, framework, notes);
+      setEvidenceByControl(s => ({...s, [control_id]: undefined}));
+      await loadEvidence(control_id);
+    } catch (e) { alert('Lưu link thất bại: ' + e.message); }
     finally { setUploading(false); }
   };
 
@@ -989,6 +1059,7 @@ function Dashboard({ config, controlStatus: externalStatus, setControlStatus: ex
                           onUpload={(fileInput) => handleUpload(c.id, 'iso27001', fileInput)}
                           onDelete={(eid) => handleDelete(c.id, eid)}
                           onDownload={(eid, fname) => downloadEvidence(eid, fname)}
+                          onAddLink={(url, label, notes) => handleAddLink(c.id, 'iso27001', url, label, notes)}
                         />}
                       </div>
                     )}
@@ -1050,6 +1121,7 @@ function Dashboard({ config, controlStatus: externalStatus, setControlStatus: ex
                           onUpload={(fileInput) => handleUpload(c.id, 'iso42001', fileInput)}
                           onDelete={(eid) => handleDelete(c.id, eid)}
                           onDownload={(eid, fname) => downloadEvidence(eid, fname)}
+                          onAddLink={(url, label, notes) => handleAddLink(c.id, 'iso42001', url, label, notes)}
                         />}
                       </div>
                     )}
