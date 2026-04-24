@@ -185,3 +185,72 @@ export async function saveConfig(companyName, size, frameworks) {
     return false;
   }
 }
+
+/**
+ * GET /compliance/controls/:control_id/evidence — list evidence for a control
+ */
+export async function getEvidence(control_id) {
+  const response = await fetch(`${API_BASE}/controls/${encodeURIComponent(control_id)}/evidence`, {
+    headers: { 'Content-Type': 'application/json', ...getAuthHeader() },
+  });
+  if (!response.ok) throw new Error(`GET evidence failed: ${response.status}`);
+  const data = await response.json();
+  return data.evidence || [];
+}
+
+/**
+ * POST /compliance/evidence — upload evidence file
+ * @param {string} control_id
+ * @param {File} file
+ * @param {string} framework
+ * @param {string} notes
+ */
+export async function uploadEvidence(control_id, file, framework = 'iso27001', notes = '') {
+  const formData = new FormData();
+  formData.append('file', file);
+  formData.append('control_id', control_id);
+  formData.append('framework', framework);
+  formData.append('notes', notes);
+
+  const response = await fetch(`${API_BASE}/evidence`, {
+    method: 'POST',
+    headers: { ...getAuthHeader() },
+    body: formData,
+  });
+  if (!response.ok) {
+    const text = await response.text();
+    throw new Error(text || `Upload failed: ${response.status}`);
+  }
+  return await response.json();
+}
+
+/**
+ * DELETE /compliance/evidence/:id — delete evidence
+ */
+export async function deleteEvidence(id) {
+  const response = await fetch(`${API_BASE}/evidence/${id}`, {
+    method: 'DELETE',
+    headers: { ...getAuthHeader() },
+  });
+  if (!response.ok) throw new Error(`DELETE evidence failed: ${response.status}`);
+  return await response.json();
+}
+
+/**
+ * GET /compliance/evidence/:id/download — fetch and trigger browser download
+ */
+export async function downloadEvidence(id, fileName) {
+  const response = await fetch(`${API_BASE}/evidence/${id}/download`, {
+    headers: { ...getAuthHeader() },
+  });
+  if (!response.ok) throw new Error(`Download failed: ${response.status}`);
+  const blob = await response.blob();
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = fileName;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}

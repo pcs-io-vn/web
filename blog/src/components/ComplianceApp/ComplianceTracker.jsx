@@ -1,4 +1,5 @@
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo, useEffect, useCallback, useRef } from "react";
+import { getEvidence, uploadEvidence, deleteEvidence, downloadEvidence } from './api.js';
 
 // ═══════════════════════════════════════════════════════════════════════════
 // DATA — ISO 27001:2022 Controls (Annex A — 93 controls, 4 themes)
@@ -159,6 +160,89 @@ const S = {
 };
 
 const font = "'IBM Plex Mono', 'Fira Code', monospace";
+
+// ═══════════════════════════════════════════════════════════════════════════
+// EVIDENCE PANEL — file upload/list per control
+// ═══════════════════════════════════════════════════════════════════════════
+function EvidencePanel({ controlId, framework, evidence, loading, uploading, notes, onNotesChange, onUpload, onDelete, onDownload }) {
+  const fileRef = useRef(null);
+  const list = evidence || [];
+
+  const fmtSize = (bytes) => {
+    if (!bytes) return '';
+    if (bytes < 1024) return `${bytes}B`;
+    if (bytes < 1024*1024) return `${(bytes/1024).toFixed(0)}KB`;
+    return `${(bytes/1024/1024).toFixed(1)}MB`;
+  };
+
+  const fmtDate = (str) => str ? str.slice(0,10) : '';
+
+  return (
+    <div style={{ marginTop:14, borderTop:`1px solid ${S.faint}`, paddingTop:12 }}>
+      <div style={{ display:"flex", alignItems:"center", gap:6, marginBottom:10 }}>
+        <span style={{ fontSize:10, color:S.accent, fontWeight:700, letterSpacing:1 }}>📎 EVIDENCE</span>
+        {list.length > 0 && (
+          <span style={{ fontSize:9, background:`${S.accent}20`, color:S.accent, padding:"1px 6px", borderRadius:10 }}>{list.length}</span>
+        )}
+      </div>
+
+      {loading && <div style={{ fontSize:10, color:S.muted, marginBottom:8 }}>Đang tải...</div>}
+
+      {!loading && list.length === 0 && (
+        <div style={{ fontSize:10, color:S.muted, marginBottom:8 }}>Chưa có file evidence</div>
+      )}
+
+      {!loading && list.map(ev => (
+        <div key={ev.id} style={{
+          display:"flex", alignItems:"center", gap:8,
+          background:S.faint, borderRadius:6, padding:"6px 10px", marginBottom:4,
+        }}>
+          <span style={{ fontSize:10, color:S.text, flex:1, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>
+            {ev.file_name}
+          </span>
+          <span style={{ fontSize:9, color:S.muted, flexShrink:0 }}>{fmtSize(ev.file_size)}</span>
+          <span style={{ fontSize:9, color:S.muted, flexShrink:0 }}>{fmtDate(ev.uploaded_at)}</span>
+          <button onClick={() => onDownload(ev.id, ev.file_name)} style={{
+            background:"none", border:`1px solid ${S.accent}50`, color:S.accent,
+            borderRadius:4, padding:"2px 7px", cursor:"pointer", fontFamily:font, fontSize:9,
+          }}>↓</button>
+          <button onClick={() => onDelete(ev.id)} style={{
+            background:"none", border:"1px solid rgba(239,68,68,0.3)", color:"rgba(239,68,68,0.7)",
+            borderRadius:4, padding:"2px 7px", cursor:"pointer", fontFamily:font, fontSize:9,
+          }}>✕</button>
+        </div>
+      ))}
+
+      {/* Upload form */}
+      <div style={{ display:"flex", gap:6, alignItems:"center", marginTop:6, flexWrap:"wrap" }}>
+        <input ref={fileRef} type="file" accept="*/*" style={{ display:"none" }} />
+        <button onClick={() => fileRef.current?.click()} style={{
+          background:"none", border:`1px solid ${S.cardBorder}`, color:S.muted,
+          borderRadius:6, padding:"4px 10px", cursor:"pointer", fontFamily:font, fontSize:10,
+        }}>+ Chọn file</button>
+        <input
+          type="text" placeholder="Ghi chú (tuỳ chọn)" value={notes}
+          onChange={e => onNotesChange(e.target.value)}
+          style={{
+            flex:1, minWidth:100, background:S.card, border:`1px solid ${S.cardBorder}`,
+            borderRadius:6, padding:"4px 8px", color:S.text, fontFamily:font, fontSize:10, outline:"none",
+          }}
+        />
+        <button
+          onClick={() => onUpload(fileRef.current)}
+          disabled={uploading}
+          style={{
+            background: uploading ? S.faint : `${S.accent}20`,
+            border:`1px solid ${uploading ? S.cardBorder : S.accent}`,
+            color: uploading ? S.muted : S.accent,
+            borderRadius:6, padding:"4px 10px", cursor: uploading ? "not-allowed" : "pointer",
+            fontFamily:font, fontSize:10, fontWeight:600,
+          }}
+        >{uploading ? 'Đang upload...' : 'Upload'}</button>
+      </div>
+    </div>
+  );
+}
 
 // ═══════════════════════════════════════════════════════════════════════════
 // ONBOARDING WIZARD
@@ -357,6 +441,47 @@ function Dashboard({ config, controlStatus: externalStatus, setControlStatus: ex
     Object.fromEntries(M365_DIMENSIONS.map(d => [d.id, 0]))
   );
   const [expandedControl, setExpandedControl] = useState(null);
+  const [evidenceByControl, setEvidenceByControl] = useState({});
+  const [evidenceLoading, setEvidenceLoading] = useState({});
+  const [uploading, setUploading] = useState(false);
+  const [uploadNotes, setUploadNotes] = useState({});
+  const isCloud = typeof window !== 'undefined' && !!localStorage.getItem('pcs_token');
+
+  const loadEvidence = useCallback(async (control_id) => {
+    if (!isCloud || evidenceByControl[control_id] !== undefined) return;
+    setEvidenceLoading(s => ({...s, [control_id]: true}));
+    try {
+      const list = await getEvidence(control_id);
+      setEvidenceByControl(s => ({...s, [control_id]: list}));
+    } catch { setEvidenceByControl(s => ({...s, [control_id]: []})); }
+    finally { setEvidenceLoading(s => ({...s, [control_id]: false})); }
+  }, [isCloud, evidenceByControl]);
+
+  useEffect(() => {
+    if (expandedControl) loadEvidence(expandedControl);
+  }, [expandedControl]);
+
+  const handleUpload = async (control_id, framework, fileInput) => {
+    const file = fileInput.files?.[0];
+    if (!file) return;
+    setUploading(true);
+    try {
+      await uploadEvidence(control_id, file, framework, uploadNotes[control_id] || '');
+      setEvidenceByControl(s => ({...s, [control_id]: undefined}));
+      fileInput.value = '';
+      setUploadNotes(s => ({...s, [control_id]: ''}));
+      await loadEvidence(control_id);
+    } catch (e) { alert('Upload thất bại: ' + e.message); }
+    finally { setUploading(false); }
+  };
+
+  const handleDelete = async (control_id, evidence_id) => {
+    if (!confirm('Xoá file evidence này?')) return;
+    try {
+      await deleteEvidence(evidence_id);
+      setEvidenceByControl(s => ({...s, [control_id]: (s[control_id] || []).filter(e => e.id !== evidence_id)}));
+    } catch (e) { alert('Xoá thất bại: ' + e.message); }
+  };
 
   // Filter controls by company size
   const relevantControls = useMemo(() =>
@@ -740,7 +865,7 @@ function Dashboard({ config, controlStatus: externalStatus, setControlStatus: ex
                           </div>
                         )}
                         {/* Status buttons */}
-                        <div style={{ display:"flex", gap:6 }}>
+                        <div style={{ display:"flex", gap:6, flexWrap:"wrap" }}>
                           {STATUS_OPTS.map(opt => (
                             <button key={opt.id} onClick={() => setStatus(c.id, opt.id)} style={{
                               background: status===opt.id ? opt.bg : "none",
@@ -751,6 +876,18 @@ function Dashboard({ config, controlStatus: externalStatus, setControlStatus: ex
                             }}>{opt.label}</button>
                           ))}
                         </div>
+                        {/* Evidence panel */}
+                        {isCloud && <EvidencePanel
+                          controlId={c.id} framework="iso27001"
+                          evidence={evidenceByControl[c.id]}
+                          loading={!!evidenceLoading[c.id]}
+                          uploading={uploading}
+                          notes={uploadNotes[c.id] || ''}
+                          onNotesChange={v => setUploadNotes(s => ({...s, [c.id]: v}))}
+                          onUpload={(fileInput) => handleUpload(c.id, 'iso27001', fileInput)}
+                          onDelete={(eid) => handleDelete(c.id, eid)}
+                          onDownload={(eid, fname) => downloadEvidence(eid, fname)}
+                        />}
                       </div>
                     )}
                   </div>
@@ -790,7 +927,7 @@ function Dashboard({ config, controlStatus: externalStatus, setControlStatus: ex
                     {expanded && (
                       <div style={{ padding:"0 16px 14px", borderTop:`1px solid ${S.cardBorder}` }}>
                         <div style={{ fontSize:11, color:S.muted, marginBottom:14, marginTop:10, lineHeight:1.6 }}>{c.desc}</div>
-                        <div style={{ display:"flex", gap:6 }}>
+                        <div style={{ display:"flex", gap:6, flexWrap:"wrap" }}>
                           {STATUS_OPTS.map(opt => (
                             <button key={opt.id} onClick={() => setStatus(c.id, opt.id)} style={{
                               background: status===opt.id ? opt.bg : "none",
@@ -801,6 +938,17 @@ function Dashboard({ config, controlStatus: externalStatus, setControlStatus: ex
                             }}>{opt.label}</button>
                           ))}
                         </div>
+                        {isCloud && <EvidencePanel
+                          controlId={c.id} framework="iso42001"
+                          evidence={evidenceByControl[c.id]}
+                          loading={!!evidenceLoading[c.id]}
+                          uploading={uploading}
+                          notes={uploadNotes[c.id] || ''}
+                          onNotesChange={v => setUploadNotes(s => ({...s, [c.id]: v}))}
+                          onUpload={(fileInput) => handleUpload(c.id, 'iso42001', fileInput)}
+                          onDelete={(eid) => handleDelete(c.id, eid)}
+                          onDownload={(eid, fname) => downloadEvidence(eid, fname)}
+                        />}
                       </div>
                     )}
                   </div>
