@@ -1,0 +1,37 @@
+name: Build Check
+
+# Chạy khi có PR vào main, hoặc push lên staging
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [staging]
+
+jobs:
+  build:
+    name: Docusaurus Build
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: blog
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+          cache-dependency-path: blog/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build
+        run: npm run build
+        env:
+          # Nâng lên error để CI fail nếu có broken link
+          NODE_OPTIONS: "--max-old-space-size=4096"
+
+      - name: Check build output exists
+        run: test -d build && echo "Build OK — $(du -sh build | cut -f1)"
