@@ -1,6 +1,7 @@
 name: Build Check
 
 # Chạy khi có PR vào main, hoặc push lên staging
+# Test run: 2026-05-10
 on:
   pull_request:
     branches: [main]
