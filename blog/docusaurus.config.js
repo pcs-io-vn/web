@@ -10,8 +10,8 @@ const config = {
   url: 'https://pcs.io.vn',
   baseUrl: '/',
 
-  organizationName: 'JaxVN',   // GitHub username
-  projectName: 'jaxvn-blog',   // GitHub repo name
+  organizationName: 'pcs-io-vn',  // GitHub org
+  projectName: 'web',             // GitHub repo name
 
   onBrokenLinks: 'warn',
   onBrokenMarkdownLinks: 'warn',
