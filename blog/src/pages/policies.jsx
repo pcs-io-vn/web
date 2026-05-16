@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import Layout from '@theme/Layout';
 import BrowserOnly from '@docusaurus/BrowserOnly';
+import PolicyLibrary from '@site/src/components/PolicyLibrary';
 
 const API_AUTH = 'https://auth.pcs.io.vn';
 
@@ -76,9 +77,6 @@ function PolicyApp() {
 
   if (checking) return <div style={{ textAlign: 'center', padding: 60, color: '#999' }}>Đang tải...</div>;
   if (!authed) return <LoginGate onLogin={() => setAuthed(true)} />;
-
-  // Lazy-load PolicyLibrary only when authed (avoids SSR issues)
-  const PolicyLibrary = require('../components/PolicyLibrary').default;
 
   return (
     <>
