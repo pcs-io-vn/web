@@ -120,6 +120,15 @@ export default function M365ImportModal({ onClose }) {
               </div>
             </div>
 
+            {/* Debug: show detected columns when nothing was updated */}
+            {result.updated === 0 && result.debug?.columns?.length > 0 && (
+              <div style={{ background: 'rgba(234,179,8,0.08)', border: '1px solid rgba(234,179,8,0.25)', borderRadius: 8, padding: '12px 14px', marginBottom: 16, fontSize: 11, color: '#fbbf24', lineHeight: 1.7 }}>
+                ⚠ Không có control nào được cập nhật. Columns phát hiện trong CSV:<br />
+                <code style={{ fontSize: 10, opacity: 0.8 }}>{result.debug.columns.join(', ')}</code><br />
+                <span style={{ color: '#94a3b8' }}>Nếu không thấy cột tên action/status, CSV có thể sai format.</span>
+              </div>
+            )}
+
             {result.report?.length > 0 && (
               <details style={{ marginBottom: 16 }}>
                 <summary style={{ fontSize: 11, color: '#64748b', cursor: 'pointer', marginBottom: 8, userSelect: 'none' }}>
