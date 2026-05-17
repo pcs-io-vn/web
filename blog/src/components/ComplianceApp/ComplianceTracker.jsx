@@ -1,5 +1,6 @@
 import { useState, useMemo, useEffect, useCallback, useRef } from "react";
 import { getEvidence, uploadEvidence, deleteEvidence, downloadEvidence, addEvidenceLink } from './api.js';
+import M365ImportModal from './M365ImportModal';
 
 // ═══════════════════════════════════════════════════════════════════════════
 // DATA — ISO 27001:2022 Controls (Annex A — 93 controls, 4 themes)
@@ -599,6 +600,7 @@ function Dashboard({ config, controlStatus: externalStatus, setControlStatus: ex
   const setStatus = (id, status) => setControlStatus(s => ({...s, [id]: status}));
 
   const [showExport, setShowExport] = useState(false);
+  const [showImport, setShowImport] = useState(false);
 
   const exportCSV = () => {
     const STATUS_LABEL = { done:"Hoàn thành", partial:"Một phần", notdone:"Chưa làm", na:"N/A" };
@@ -716,6 +718,7 @@ function Dashboard({ config, controlStatus: externalStatus, setControlStatus: ex
       minHeight:"100vh", background:S.bg, color:S.text,
       fontFamily:font, fontSize:13,
     }}>
+      {showImport && <M365ImportModal onClose={() => setShowImport(false)} />}
       {/* Top bar */}
       <div style={{
         borderBottom:`1px solid ${S.cardBorder}`,
@@ -747,6 +750,13 @@ function Dashboard({ config, controlStatus: externalStatus, setControlStatus: ex
               color:"rgba(239,68,68,0.6)", borderRadius:8, padding:"5px 10px",
               cursor:"pointer", fontFamily:font, fontSize:10, marginLeft:8,
             }} title="Xoá data tenant này">⊗ Reset</button>
+          )}
+          {/* M365 Import button — cloud mode only */}
+          {isCloud && (
+            <button onClick={() => setShowImport(true)} style={{
+              background:"none", border:`1px solid ${S.cardBorder}`, color:S.muted,
+              borderRadius:8, padding:"5px 12px", cursor:"pointer", fontFamily:font, fontSize:11, marginLeft:4,
+            }} title="Import M365 Secure Score CSV">↑ M365</button>
           )}
           {/* Export dropdown */}
           <div style={{ position:"relative", marginLeft:4 }}>

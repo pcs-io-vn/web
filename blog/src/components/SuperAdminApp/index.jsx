@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import TenantsTab from './TenantsTab';
 import UsersTab   from './UsersTab';
+import PolicyTab  from './PolicyTab';
 import { getSAStats, getMe } from './api';
 
 const card = (label, value, sub, color = '#0066cc') => (
@@ -77,10 +78,12 @@ export default function SuperAdminApp({ onLogout }) {
       <div style={{ display: 'flex', gap: 8, marginBottom: 16 }}>
         <button style={tabBtn(tab === 'tenants')} onClick={() => setTab('tenants')}>Tenants</button>
         <button style={tabBtn(tab === 'users')}   onClick={() => setTab('users')}>All Users</button>
+        <button style={tabBtn(tab === 'policies')} onClick={() => setTab('policies')}>Policy Templates</button>
       </div>
 
-      {tab === 'tenants' && <TenantsTab />}
-      {tab === 'users'   && <UsersTab />}
+      {tab === 'tenants'  && <TenantsTab />}
+      {tab === 'users'    && <UsersTab />}
+      {tab === 'policies' && <PolicyTab />}
     </div>
   );
 }

@@ -73,6 +73,80 @@ async function apiRegister(companyName, email, password) {
   return apiLogin(email, password);
 }
 
+// ─── Onboarding — apply ISO 27001 baseline after register ────────────────────
+async function applyISO27001Baseline() {
+  const token = localStorage.getItem('pcs_token');
+  if (!token) return;
+  await fetch('https://mcp.pcs.io.vn/compliance/templates/apply', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+    body: JSON.stringify({ standard: 'iso27001' }),
+  });
+}
+
+function OnboardingModal({ onDone }) {
+  const [loading, setLoading] = useState(false);
+  const [done, setDone] = useState(false);
+
+  async function handleApply() {
+    setLoading(true);
+    try { await applyISO27001Baseline(); } catch {}
+    setDone(true);
+    setLoading(false);
+    setTimeout(onDone, 1400);
+  }
+
+  return (
+    <div style={{
+      position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.55)',
+      zIndex: 200, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24,
+    }}>
+      <div style={{
+        background: 'var(--ifm-background-surface-color)',
+        border: '1px solid var(--ifm-color-emphasis-300)',
+        borderRadius: 16, padding: 36, maxWidth: 440, width: '100%',
+        textAlign: 'center', fontFamily: "'IBM Plex Mono', monospace",
+      }}>
+        <div style={{ fontSize: 40, marginBottom: 12 }}>📋</div>
+        <div style={{ fontSize: 18, fontWeight: 700, marginBottom: 8 }}>Tải ISO 27001 baseline?</div>
+        <div style={{ fontSize: 13, opacity: 0.6, lineHeight: 1.7, marginBottom: 24 }}>
+          PCS có thể tạo sẵn <strong>140 controls ISO 27001</strong> trong dashboard
+          với trạng thái &ldquo;chưa làm&rdquo;. Bạn có thể bắt đầu đánh giá ngay lập tức.
+        </div>
+        {done ? (
+          <div style={{ color: '#22c55e', fontSize: 14, fontWeight: 600 }}>
+            ✅ Đã tải! Đang mở dashboard...
+          </div>
+        ) : (
+          <div style={{ display: 'flex', gap: 12, justifyContent: 'center', flexWrap: 'wrap' }}>
+            <button
+              onClick={handleApply}
+              disabled={loading}
+              style={{
+                background: 'var(--ifm-color-primary)', color: '#fff', border: 'none',
+                borderRadius: 8, padding: '10px 24px', fontSize: 13, fontWeight: 700,
+                cursor: loading ? 'default' : 'pointer', opacity: loading ? 0.7 : 1,
+              }}
+            >
+              {loading ? 'Đang tải...' : '✓ Tải baseline'}
+            </button>
+            <button
+              onClick={onDone}
+              style={{
+                background: 'none', border: '1px solid var(--ifm-color-emphasis-300)',
+                borderRadius: 8, padding: '10px 18px', fontSize: 13,
+                cursor: 'pointer', opacity: 0.6,
+              }}
+            >
+              Bỏ qua
+            </button>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
 // ─── OAuth callback ────────────────────────────────────────────────────────────
 async function handleOAuthCallback() {
   const params = new URLSearchParams(window.location.search);
@@ -133,13 +207,13 @@ function Landing({ onLocalStart, onAuthSuccess }) {
         if (password.length < 8) throw new Error('Mật khẩu tối thiểu 8 ký tự');
         const { token, tenantSlug } = await apiRegister(companyName, email, password);
         localStorage.setItem('pcs_token', token);
-        onAuthSuccess(token, tenantSlug);
+        onAuthSuccess(token, tenantSlug, true); // isNewUser = true
       } else {
         if (!email.includes('@')) throw new Error('Email không hợp lệ');
         if (!password) throw new Error('Nhập mật khẩu');
         const { token, tenantSlug } = await apiLogin(email, password);
         localStorage.setItem('pcs_token', token);
-        onAuthSuccess(token, tenantSlug);
+        onAuthSuccess(token, tenantSlug, false);
       }
     } catch (e) {
       setError(e.message);
@@ -372,6 +446,7 @@ function CompliancePageContent() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [loading, setLoading] = useState(true);
   const [showLanding, setShowLanding] = useState(false);
+  const [showOnboarding, setShowOnboarding] = useState(false);
 
   const handleLocalStart = (slug) => {
     setTenant(slug);
@@ -380,7 +455,7 @@ function CompliancePageContent() {
     setShowLanding(false);
   };
 
-  const handleAuthSuccess = (token, tenantSlug) => {
+  const handleAuthSuccess = (token, tenantSlug, isNewUser = false) => {
     const t = tenantSlug || getTenant();
     if (t) {
       setMode(t, 'cloud');
@@ -390,6 +465,7 @@ function CompliancePageContent() {
     setModeState('cloud');
     setIsAuthenticated(true);
     setShowLanding(false);
+    if (isNewUser) setShowOnboarding(true);
   };
 
   useEffect(() => {
@@ -492,6 +568,7 @@ function CompliancePageContent() {
       </div>
     }>
       <div style={{ position: 'relative' }}>
+        {showOnboarding && <OnboardingModal onDone={() => setShowOnboarding(false)} />}
         <ComplianceApp
           tenant={tenant}
           mode={mode}
