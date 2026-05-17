@@ -253,6 +253,44 @@ export async function addEvidenceLink(control_id, evidence_url, label = '', fram
 }
 
 /**
+ * POST /compliance/import-m365 — import M365 Secure Score CSV
+ * @param {File} file — CSV file exported from Microsoft Defender portal
+ * @returns {Promise<{ok, updated, skipped, unmatched, total, report}>}
+ */
+export async function importM365CSV(file) {
+  const formData = new FormData();
+  formData.append('file', file);
+  const response = await fetch('https://mcp.pcs.io.vn/compliance/import-m365', {
+    method: 'POST',
+    headers: { ...getAuthHeader() },
+    body: formData,
+  });
+  if (!response.ok) {
+    const text = await response.text();
+    throw new Error(text || `Import M365 failed: ${response.status}`);
+  }
+  return await response.json();
+}
+
+/**
+ * POST /compliance/templates/apply — seed baseline controls for tenant
+ * @param {string} standard — 'iso27001' | 'iso42001'
+ * @returns {Promise<{ok, created, skipped, total}>}
+ */
+export async function applyBaselineTemplates(standard = 'iso27001') {
+  const response = await fetch('https://mcp.pcs.io.vn/compliance/templates/apply', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getAuthHeader() },
+    body: JSON.stringify({ standard }),
+  });
+  if (!response.ok) {
+    const text = await response.text();
+    throw new Error(text || `Apply templates failed: ${response.status}`);
+  }
+  return await response.json();
+}
+
+/**
  * GET /compliance/evidence/:id/download — fetch and trigger browser download
  */
 export async function downloadEvidence(id, fileName) {
